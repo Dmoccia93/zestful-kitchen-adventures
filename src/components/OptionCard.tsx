@@ -10,6 +10,7 @@ interface OptionCardProps {
   colorClass: string;
   buttonText: string;
   icon?: ReactNode;
+  imagePosition?: 'top' | 'center';
 }
 
 const OptionCard = ({ 
@@ -18,21 +19,22 @@ const OptionCard = ({
   imageSrc, 
   colorClass,
   buttonText,
-  icon
+  icon,
+  imagePosition = 'center'
 }: OptionCardProps) => {
   return (
-    <Card className={`overflow-hidden border-none shadow-lg ${colorClass} h-full flex flex-col animate-scale-in card-hover`}>
-      <div className="relative h-48 sm:h-64 md:h-80 overflow-hidden">
+    <Card className={`overflow-hidden border-none shadow-md ${colorClass} h-full flex flex-col`}>
+      <div className="relative h-48 sm:h-56 overflow-hidden">
         <img 
           src={imageSrc} 
           alt={title} 
-          className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+          className={`w-full h-full object-cover ${imagePosition === 'center' ? 'object-center' : 'object-top'}`}
         />
       </div>
-      <div className="p-6 sm:p-8 flex flex-col flex-grow">
-        <h3 className="text-2xl sm:text-3xl font-bold mb-4 font-serif">{title}</h3>
-        <p className="text-lg mb-6 flex-grow">{description}</p>
-        <Button className="w-full py-6 bg-white text-foreground hover:bg-white/90 flex items-center justify-center gap-2 btn-hover">
+      <div className="p-6 flex flex-col flex-grow">
+        <h3 className="text-xl sm:text-2xl font-bold mb-3">{title}</h3>
+        <p className="text-sm sm:text-base mb-6 flex-grow">{description}</p>
+        <Button className="w-full py-5 bg-white text-foreground hover:bg-white/90 flex items-center justify-center gap-2">
           {icon && icon}
           {buttonText}
         </Button>
