@@ -14,7 +14,7 @@ const OptionsSection = () => {
           <OptionCard 
             title="Find a recipe with what's in your fridge"
             description="Input your available ingredients and discover delicious recipes you can make right now. No more wasted food or last-minute grocery runs."
-            imageSrc="/lovable-uploads/test.png" 
+            imageSrc="/lovable-uploads/1e3a1eeb-ae11-448c-996d-24d07bc318c0.png" 
             colorClass="bg-recipe-mint"
             buttonText="Find Recipes"
             icon={<Search className="w-5 h-5" />}
