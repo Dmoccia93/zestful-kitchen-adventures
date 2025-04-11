@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Command, CommandInput, CommandList, CommandItem } from './command'; // Adjust import path
+import { Command, CommandInput, CommandList, CommandItem } from './command'; // Corrected import path
 
 interface ComboboxProps {
     value: string;
