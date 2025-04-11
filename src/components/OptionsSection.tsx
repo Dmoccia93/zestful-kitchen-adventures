@@ -25,7 +25,7 @@ const OptionsSection = () => {
           <OptionCard 
             title="Get weekly recipes tailored to your goals"
             description="Receive personalized weekly meal plans based on your dietary preferences, health goals, and cooking skill level. Plan ahead and eat better."
-            imageSrc="https://unsplash.com/fr/photos/une-table-surmontee-de-recipients-remplis-de-differents-types-daliments-VsKGJoOJDG8"
+            imageSrc="https://images.unsplash.com/photo-1543352634-99a5d50ae78e"
             colorClass="bg-recipe-cream"
             buttonText="Get Meal Plan"
             icon={<Calendar className="w-5 h-5" />}
