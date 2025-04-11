@@ -39,7 +39,7 @@ const FindRecipe = () => {
       <NavBar />
       <main className="flex-grow py-12 px-6 sm:px-8 lg:px-12 bg-background">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center text-foreground">
+          <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center text-foreground mt-12">
             Add here the ingredients that you have to get a fab recipe
           </h1>
           
