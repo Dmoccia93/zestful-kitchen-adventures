@@ -19,6 +19,7 @@ const OptionsSection = () => {
             buttonText="Find Recipes"
             icon={<Search className="w-5 h-5" />}
             imagePosition="top"
+            linkTo="/find-recipe"
           />
           
           <OptionCard 
