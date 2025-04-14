@@ -15,8 +15,9 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
     // Update matching ingredients when value changes
     useEffect(() => {
         // We ensure this always returns an array
-        const ingredients = findMatchingIngredients(value) ?? [];
-setMatchingIngredients(Array.isArray(ingredients) ? ingredients : []);
+        const safeQuery = typeof value === "string" ? value : "";
+        const ingredients = findMatchingIngredients(safeQuery) ?? [];
+        setMatchingIngredients(Array.isArray(ingredients) ? ingredients : []);
     }, [value]);
 
     return (
