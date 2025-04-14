@@ -14,16 +14,21 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
     
     // Update matching ingredients when value changes
     useEffect(() => {
-        // We ensure this always returns an array
-        const safeQuery = typeof value === "string" ? value : "";
-        const ingredients = findMatchingIngredients(safeQuery) ?? [];
-        setMatchingIngredients(Array.isArray(ingredients) ? ingredients : []);
+        try {
+            // We ensure this always returns an array
+            const safeQuery = typeof value === "string" ? value : "";
+            const ingredients = findMatchingIngredients(safeQuery);
+            setMatchingIngredients(Array.isArray(ingredients) ? ingredients : []);
+        } catch (error) {
+            console.error("Error in IngredientCombobox:", error);
+            setMatchingIngredients([]);
+        }
     }, [value]);
 
     return (
         <Combobox
-            value={value}
-            onValueChange={onValueChange}
+            value={value || ""}
+            onValueChange={(newValue) => onValueChange(newValue || "")}
             items={matchingIngredients}
             label={label}
             isValid={value === '' || isValidIngredient(value)}

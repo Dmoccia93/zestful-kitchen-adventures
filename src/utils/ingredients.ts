@@ -1,11 +1,4 @@
-
-console.log("ingredients.ts file is being executed!")
-if (!Array.isArray(ingredients)) {
-    console.error("Ingredients is not an array:", ingredients);
-  }
-
-// Parse the ingredients from the CSV content that was previously in top-1k-ingredients.csv
-// The format is preserved but now as a hardcoded string in the browser-compatible code
+// Remove the error-prone console log at the top
 export const ingredients: string[] = [
   "5 spice powder",
   "acorn squash",
@@ -1001,18 +994,25 @@ export const ingredients: string[] = [
   "yukon gold potato"
 ];
 
-console.log("Loaded ingredients:", ingredients);
+// Add debug log after the array definition
+console.log("Loaded ingredients:", Array.isArray(ingredients) ? ingredients.length : "not an array");
 
 // Function to search for matching ingredients
 export const findMatchingIngredients = (query: string): string[] => {
+    // Safety check on ingredients array
+    if (!Array.isArray(ingredients)) {
+        console.error("Ingredients is not an array, returning empty array");
+        return [];
+    }
+    
     if (!query) {
-        return ingredients; // Return all ingredients if query is empty
+        return ingredients.slice(0, 100); // Return first 100 ingredients if query is empty
     }
     
     try {
         const lowerCaseQuery = query.toLowerCase();
         return ingredients.filter(ingredient =>
-            ingredient.toLowerCase().startsWith(lowerCaseQuery)
+            typeof ingredient === 'string' && ingredient.toLowerCase().startsWith(lowerCaseQuery)
         );
     } catch (error) {
         console.error("Error filtering ingredients:", error);
@@ -1023,6 +1023,10 @@ export const findMatchingIngredients = (query: string): string[] => {
 // Function to validate if an ingredient exists
 export const isValidIngredient = (ingredient: string): boolean => {
     if (!ingredient) return false;
+    if (!Array.isArray(ingredients)) {
+        console.error("Ingredients is not an array in isValidIngredient");
+        return false;
+    }
     return ingredients.includes(ingredient.trim());
 };
 
