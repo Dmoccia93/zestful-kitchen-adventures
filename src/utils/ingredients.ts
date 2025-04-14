@@ -3,7 +3,7 @@ console.log("ingredients.ts file is being executed!")
 
 // Parse the ingredients from the CSV content that was previously in top-1k-ingredients.csv
 // The format is preserved but now as a hardcoded string in the browser-compatible code
-const ingredients = [
+export const ingredients: string[] = [
   "5 spice powder",
   "acorn squash",
   "adobo sauce",
