@@ -23,7 +23,7 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
     useEffect(() => {
         setQuery(value);
     }, [value]);
-
+    console.log("🔍 Combobox debug", { items, value, filteredItems, query });
     return (
         <div className="w-full">
             {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
