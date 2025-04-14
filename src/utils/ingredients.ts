@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import path from 'path';
+console.log("ingredients.ts file is being executed!")
 
 // Modified path to point to src/top-1k-ingredients.csv (YOUR FILE NAME!)
 const csvFilePath = path.join(process.cwd(), 'src', 'top-1k-ingredients.csv');
