@@ -9,6 +9,7 @@ const csvData = readFileSync(csvFilePath, 'utf-8');
 
 // Parse the CSV data
 const ingredients = csvData.split('\n').map(ingredient => ingredient.trim());
+console.log("Loaded ingredients:", ingredients);
 
 // Function to search for matching ingredients
 export const findMatchingIngredients = (query: string): string[] => {
