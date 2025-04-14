@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Combobox from './ui/combobox';
 import { findMatchingIngredients, isValidIngredient } from '../utils/ingredients';
+import ErrorBoundary from './ErrorBoundary'; // Import the ErrorBoundary component
 
 interface IngredientComboboxProps {
     value: string;
@@ -26,13 +27,15 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
     }, [value]);
 
     return (
-        <Combobox
-            value={value || ""}
-            onValueChange={(newValue) => onValueChange(newValue || "")}
-            items={matchingIngredients}
-            label={label}
-            isValid={value === '' || isValidIngredient(value)}
-        />
+        <ErrorBoundary> {/* Wrap your component with ErrorBoundary */}
+            <Combobox
+                value={value || ""}
+                onValueChange={(newValue) => onValueChange(newValue || "")}
+                items={matchingIngredients}
+                label={label}
+                isValid={value === '' || isValidIngredient(value)}
+            />
+        </ErrorBoundary>
     );
 };
 
