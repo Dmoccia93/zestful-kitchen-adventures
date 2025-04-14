@@ -13,7 +13,12 @@ interface ComboboxProps {
 const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label, isValid = true }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState(value);
-    const filteredItems = items.filter(item => item.toLowerCase().includes(query.toLowerCase()));
+    
+    // Ensure items is always an array, even if it's undefined
+    const safeItems = Array.isArray(items) ? items : [];
+    const filteredItems = safeItems.filter(item => 
+        item.toLowerCase().includes(query.toLowerCase())
+    );
 
     useEffect(() => {
         setQuery(value);

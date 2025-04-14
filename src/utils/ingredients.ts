@@ -1005,14 +1005,21 @@ export const findMatchingIngredients = (query: string): string[] => {
     if (!query) {
         return ingredients; // Return all ingredients if query is empty
     }
-    const lowerCaseQuery = query.toLowerCase();
-    return ingredients.filter(ingredient =>
-        ingredient.toLowerCase().startsWith(lowerCaseQuery)
-    );
+    
+    try {
+        const lowerCaseQuery = query.toLowerCase();
+        return ingredients.filter(ingredient =>
+            ingredient.toLowerCase().startsWith(lowerCaseQuery)
+        );
+    } catch (error) {
+        console.error("Error filtering ingredients:", error);
+        return []; // Return empty array on error to prevent undefined
+    }
 };
 
 // Function to validate if an ingredient exists
 export const isValidIngredient = (ingredient: string): boolean => {
+    if (!ingredient) return false;
     return ingredients.includes(ingredient.trim());
 };
 
