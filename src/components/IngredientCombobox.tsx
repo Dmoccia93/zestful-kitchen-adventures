@@ -1,6 +1,7 @@
-import React from 'react';
-import Combobox from './ui/combobox'; // Adjust import path if necessary
-import { findMatchingIngredients, allIngredients } from '../utils/ingredients'; // Adjust import path
+
+import React, { useState, useEffect } from 'react';
+import Combobox from './ui/combobox';
+import { findMatchingIngredients, isValidIngredient } from '../utils/ingredients';
 
 interface IngredientComboboxProps {
     value: string;
@@ -9,12 +10,20 @@ interface IngredientComboboxProps {
 }
 
 const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueChange, label }) => {
+    const [matchingIngredients, setMatchingIngredients] = useState<string[]>([]);
+    
+    // Update matching ingredients when value changes
+    useEffect(() => {
+        setMatchingIngredients(findMatchingIngredients(value));
+    }, [value]);
+
     return (
         <Combobox
             value={value}
             onValueChange={onValueChange}
-            items={findMatchingIngredients(value)}
+            items={matchingIngredients}
             label={label}
+            isValid={value === '' || isValidIngredient(value)}
         />
     );
 };
