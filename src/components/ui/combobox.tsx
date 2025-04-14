@@ -45,16 +45,17 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
                         <CommandList>
                             {filteredItems.slice(0, 10).map(item => (
                                 <CommandItem
-                                    key={item}
-                                    value={item}
-                                    onSelect={(newValue) => {
-                                        onValueChange(newValue === value ? "" : newValue);
-                                        setQuery(newValue);
-                                        setIsOpen(false);
-                                    }}
-                                >
-                                    {item}
-                                </CommandItem>
+                                key={item}
+                                value={item}
+                                onSelect={(newValue) => {
+                                  if (!newValue) return; // ⛑️ Safeguard against undefined
+                                  onValueChange(newValue === value ? "" : newValue);
+                                  setQuery(newValue);
+                                  setIsOpen(false);
+                                }}
+                              >
+                                {item}
+                              </CommandItem>
                             ))}
                         </CommandList>
                     )}
