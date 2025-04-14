@@ -16,10 +16,9 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
     
     // Ensure items is always an array, even if it's undefined
     const safeItems = Array.isArray(items) ? items : [];
-    const filteredItems = (items ?? []).filter(item =>
+    const filteredItems = safeItems.filter(item =>
         item.toLowerCase().startsWith(query.toLowerCase())
       );
-
     useEffect(() => {
         setQuery(value);
     }, [value]);
