@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
@@ -26,9 +25,21 @@ const FindRecipe = () => {
 
     const handleIngredientChange = (index: number, field: "name" | "quantity", value: string) => {
         try {
+            console.log("handleIngredientChange - Start");
+            console.log("handleIngredientChange - index:", index);
+            console.log("handleIngredientChange - field:", field);
+            console.log("handleIngredientChange - value:", value);
+            console.log("handleIngredientChange - ingredients before:", JSON.stringify([...ingredients])); // Stringify for deep copy
+
             const updatedIngredients = [...ingredients];
+            console.log("handleIngredientChange - updatedIngredients before:", JSON.stringify([...updatedIngredients]));
+
             updatedIngredients[index][field] = value;
+            console.log("handleIngredientChange - updatedIngredients after:", JSON.stringify([...updatedIngredients]));
+
             setIngredients(updatedIngredients);
+            console.log("handleIngredientChange - ingredients after:", JSON.stringify([...ingredients]));
+            console.log("handleIngredientChange - End");
         } catch (error) {
             console.error("Error updating ingredient:", error);
         }
@@ -63,22 +74,27 @@ const FindRecipe = () => {
                     </div>
 
                     <div className="space-y-4 mb-8">
-                        {ingredients.map((ingredient, index) => (
-                            <div key={index} className="flex gap-4">
-                                <div className="flex-grow">
-                                    <IngredientCombobox
-                                        value={ingredient.name}
-                                        onValueChange={(value) => handleIngredientChange(index, "name", value)}
+                        {/* Corrected code: Only one ingredients.map() */}
+                        {console.log("Ingredients before map:", JSON.stringify([...ingredients]))} 
+                        {ingredients.map((ingredient, index) => {
+                            console.log("Mapping ingredient - index:", index, "ingredient:", JSON.stringify({...ingredient}));
+                            return (
+                                <div key={index} className="flex gap-4">
+                                    <div className="flex-grow">
+                                        <IngredientCombobox
+                                            value={ingredient.name}
+                                            onValueChange={(value) => handleIngredientChange(index, "name", value)}
+                                        />
+                                    </div>
+                                    <Input
+                                        className="w-1/3"
+                                        placeholder="Quantity"
+                                        value={ingredient.quantity}
+                                        onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
                                     />
                                 </div>
-                                <Input
-                                    className="w-1/3"
-                                    placeholder="Quantity"
-                                    value={ingredient.quantity}
-                                    onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
-                                />
-                            </div>
-                        ))}
+                            );
+                        })}
                         <Button
                             variant="outline"
                             onClick={handleAddIngredient}
