@@ -38,11 +38,11 @@ const OptionCard = ({
           src={imageSrc}
           alt={title}
           className={`w-full h-full object-cover object-center ${
-            title.includes("weekly") ? 'filter grayscale-[80%] brightness-75' : ''
+            title.includes("weekly") ? 'filter grayscale-[80%] brightness-75 opacity-60' : ''
           }`}
         />
       </div>
-      <div className={`p-6 flex flex-col flex-grow ${colorClass}`}> {/* Applied colorClass here */}
+      <div className={`p-6 flex flex-col flex-grow ${colorClass} ${title.includes("weekly") ? 'opacity-60' : ''}`}>
         <h3 className="text-xl sm:text-2xl font-bold mb-3">{title}</h3>
         {title.includes("weekly") && (
           <span className="text-red-500 font-semibold text-sm sm:text-base">(Coming Soon)</span>
