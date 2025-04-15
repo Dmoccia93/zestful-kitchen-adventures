@@ -1,6 +1,5 @@
 
 import BenefitsSection from '@/components/BenefitsSection';
-import CallToAction from '@/components/CallToAction';
 import Footer from '@/components/Footer';
 import Hero from '@/components/Hero';
 import NavBar from '@/components/NavBar';
@@ -14,7 +13,6 @@ const Index = () => {
         <Hero />
         <OptionsSection />
         <BenefitsSection />
-        <CallToAction />
       </main>
       <Footer />
     </div>
