@@ -8,24 +8,23 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"; // Remove this import!
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Search } from "lucide-react";
+import IngredientCombobox from "@/components/IngredientCombobox"; // Ensure correct path!
 
 const FindRecipe = () => {
     const [inputMethod, setInputMethod] = useState("manual");
-    const [ingredients, setIngredients] = useState<{ name: string; quantity: string }[]>([
-        { name: "", quantity: "" }
-    ]);
+    const [ingredients, setIngredients] = useState<string[]>([""]); // Simplified state
 
     const handleAddIngredient = () => {
-        setIngredients([...ingredients, { name: "", quantity: "" }]);
+        setIngredients([...ingredients, ""]); // Add empty string
     };
 
-    const handleIngredientChange = (index: number, field: "name" | "quantity", value: string) => {
+    const handleIngredientChange = (index: number, value: string) => { // Simplified function
         try {
             const updatedIngredients = [...ingredients];
-            updatedIngredients[index][field] = value;
+            updatedIngredients[index] = value;
             setIngredients(updatedIngredients);
         } catch (error) {
             console.error("Error updating ingredient:", error);
@@ -65,16 +64,12 @@ const FindRecipe = () => {
                             <div key={index} className="flex gap-4">
                                 <div className="flex-grow">
                                     <IngredientCombobox
-                                        value={ingredient.name}
-                                        onValueChange={(value) => handleIngredientChange(index, "name", value)}
+                                        value={ingredient} // Simplified value prop
+                                        onValueChange={(value) => handleIngredientChange(index, value)} // Simplified handler
+                                        label="Ingredient" // Changed label
                                     />
                                 </div>
-                                <Input
-                                    className="w-1/3"
-                                    placeholder="Quantity"
-                                    value={ingredient.quantity}
-                                    onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
-                                />
+                                {/* REMOVED QUANTITY INPUT */}
                             </div>
                         ))}
                         <Button
