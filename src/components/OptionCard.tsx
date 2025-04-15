@@ -31,8 +31,12 @@ const OptionCard = ({
     </>
   );
 
+  const cardClassName = `overflow-hidden border-none shadow-md h-full flex flex-col relative ${
+    !title.includes("weekly") ? 'transition-transform transform hover:scale-105 cursor-pointer' : ''
+  }`;
+
   return (
-    <Card className={`overflow-hidden border-none shadow-md h-full flex flex-col relative`}>
+    <Card className={cardClassName}>
       <div className="relative h-48 sm:h-56 overflow-hidden">
         <img
           src={imageSrc}
