@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
@@ -11,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Search } from "lucide-react";
+import IngredientCombobox from "@/components/IngredientCombobox";
 
 const FindRecipe = () => {
     const [inputMethod, setInputMethod] = useState("manual");
@@ -23,9 +25,13 @@ const FindRecipe = () => {
     };
 
     const handleIngredientChange = (index: number, field: "name" | "quantity", value: string) => {
-        const updatedIngredients = [...ingredients];
-        updatedIngredients[index][field] = value;
-        setIngredients(updatedIngredients);
+        try {
+            const updatedIngredients = [...ingredients];
+            updatedIngredients[index][field] = value;
+            setIngredients(updatedIngredients);
+        } catch (error) {
+            console.error("Error updating ingredient:", error);
+        }
     };
 
     const handleGenerateRecipe = () => {
@@ -57,15 +63,14 @@ const FindRecipe = () => {
                     </div>
 
                     <div className="space-y-4 mb-8">
-                        {/* Corrected code: Only one ingredients.map() */}
                         {ingredients.map((ingredient, index) => (
                             <div key={index} className="flex gap-4">
-                                <Input
-                                    className="flex-grow"
-                                    placeholder="Ingredient name"
-                                    value={ingredient.name}
-                                    onChange={(e) => handleIngredientChange(index, "name", e.target.value)}
-                                />
+                                <div className="flex-grow">
+                                    <IngredientCombobox
+                                        value={ingredient.name}
+                                        onValueChange={(value) => handleIngredientChange(index, "name", value)}
+                                    />
+                                </div>
                                 <Input
                                     className="w-1/3"
                                     placeholder="Quantity"
