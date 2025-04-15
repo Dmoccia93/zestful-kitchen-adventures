@@ -44,7 +44,7 @@ const OptionCard = ({
   <img
     src={imageSrc}
     alt={title}
-    loading="eager" // Add this attribute here
+    loading="eager"
     className={`w-full h-full object-cover object-center ${
       title.includes("weekly") ? 'filter grayscale-[80%] brightness-75 opacity-40' : ''
     }`}
