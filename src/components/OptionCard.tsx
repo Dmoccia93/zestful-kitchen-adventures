@@ -69,7 +69,7 @@ const OptionCard = ({
               }`}
             />
             {title.includes("weekly") && (
-              <div className="absolute top-8 left-1/2 transform -translate-x-1/2 -rotate-45 bg-red-500 text-white py-1 px-3 text-xs font-bold">
+              <div className="absolute top-0 right-0 transform origin-top-right rotate-45 bg-red-500 text-white py-1 px-3 text-xs font-bold">
                 COMING SOON
               </div>
             )}
