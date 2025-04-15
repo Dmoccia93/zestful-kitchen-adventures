@@ -28,9 +28,15 @@ const Combobox: React.FC<ComboboxProps> = ({
 
     // Use useCallback to memoize the filter function
     const filterItems = useCallback((itemsToFilter: string[], searchQuery: string) => {
-        return (Array.isArray(itemsToFilter) ? itemsToFilter : []).filter(item => { // Safe filtering
+        const safeItemsToFilter = Array.isArray(itemsToFilter) ? itemsToFilter : []; // Safe handling
+    
+        if (!searchQuery) return safeItemsToFilter.slice(0, 100); // Show first 100 on empty
+        if (searchQuery.length === 1) return safeItemsToFilter.filter(item => {
             if (!item || typeof item !== 'string') return false;
-            if (!searchQuery) return true;
+            return item.toLowerCase().startsWith(searchQuery.toLowerCase());
+        });
+        return safeItemsToFilter.filter(item => {
+            if (!item || typeof item !== 'string') return false;
             return item.toLowerCase().includes(searchQuery.toLowerCase());
         });
     }, []);
