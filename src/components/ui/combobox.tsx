@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { Command, CommandInput, CommandList, CommandItem } from './command'; // Adjust if needed
+import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from './command'; 
+import { Loader2 } from 'lucide-react';
 
 interface ComboboxProps {
     value: string;
@@ -7,9 +9,17 @@ interface ComboboxProps {
     items: string[] | undefined; // Allow undefined
     label?: string;
     isValid?: boolean;
+    isLoading?: boolean;
 }
 
-const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label, isValid = true }) => {
+const Combobox: React.FC<ComboboxProps> = ({ 
+    value, 
+    onValueChange, 
+    items, 
+    label, 
+    isValid = true,
+    isLoading = false
+}) => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState(value || "");
 
@@ -35,7 +45,6 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
     // Safe selection handler that prevents the undefined issue
     const handleSelect = useCallback((selectedItem: string | undefined | null) => { // Allow null
         if (selectedItem === undefined || selectedItem === null) {
-            console.warn("handleSelect received undefined/null item", selectedItem); // Use warn instead of log
             setQuery(""); // Clear query
             onValueChange(""); // Pass empty string
             setIsOpen(false);
@@ -43,22 +52,10 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
         }
 
         const safeSelectedItem = String(selectedItem);
-        console.log("handleSelect - safeSelectedItem:", safeSelectedItem); // Log the string value
         setQuery(safeSelectedItem);
-        console.log("handleSelect - Before onValueChange. safeSelectedItem:", safeSelectedItem, "value:", value); // Log before onValueChange
         onValueChange(safeSelectedItem);
-        console.log("handleSelect - After onValueChange. safeSelectedItem:", safeSelectedItem, "value:", value); // Log after onValueChange
         setIsOpen(false);
-    }, [onValueChange, value]); // Add value as a dependency
-
-    console.log("🔍 Combobox debug", {
-        items: safeItems,
-        value,
-        filteredItems,
-        query,
-        itemsLength: safeItems.length,
-        filteredLength: filteredItems.length,
-    });
+    }, [onValueChange]); // Remove value as a dependency to avoid re-renders
 
     return (
         <div className="w-full">
@@ -70,33 +67,42 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
                         if (e.key === 'Enter') setIsOpen(false);
                     }}
                 >
-                    <CommandInput
-                        placeholder="Search ingredients..."
-                        value={query}
-                        onValueChange={(newQuery) => {
-                            const safeNewQuery = String(newQuery || ""); // Ensure newQuery is a string
-                            setQuery(safeNewQuery);
-                            onValueChange(safeNewQuery); // Update parent
-                            setIsOpen(true);
-                        }}
-                        onBlur={() => {
-                            // On blur, update the parent value with the current query
-                            if (onValueChange) {
+                    <div className="flex items-center px-3">
+                        <CommandInput
+                            placeholder="Search ingredients..."
+                            value={query}
+                            onValueChange={(newQuery) => {
+                                const safeNewQuery = String(newQuery || ""); // Ensure newQuery is a string
+                                setQuery(safeNewQuery);
+                                onValueChange(safeNewQuery); // Update parent
+                                setIsOpen(true);
+                            }}
+                            onBlur={() => {
+                                // On blur, update the parent value with the current query
                                 onValueChange(query);
-                            }
-                        }}
-                    />
-                    {isOpen && filteredItems && filteredItems.length > 0 && (
+                            }}
+                            className="flex-1"
+                        />
+                        {isLoading && (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                    </div>
+                    
+                    {isOpen && (
                         <CommandList>
-                            {filteredItems.slice(0, 10).map((item, index) => (
-                                <CommandItem
-                                    key={`${item}-${index}`}
-                                    value={item}
-                                    onSelect={handleSelect}
-                                >
-                                    {item}
-                                </CommandItem>
-                            ))}
+                            {filteredItems.length === 0 && !isLoading ? (
+                                <CommandEmpty>No ingredients found.</CommandEmpty>
+                            ) : (
+                                filteredItems.slice(0, 10).map((item, index) => (
+                                    <CommandItem
+                                        key={`${item}-${index}`}
+                                        value={item}
+                                        onSelect={handleSelect}
+                                    >
+                                        {item}
+                                    </CommandItem>
+                                ))
+                            )}
                         </CommandList>
                     )}
                 </Command>

@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Combobox from './ui/combobox';
-import { findMatchingIngredients, isValidIngredient } from '../utils/ingredients';
-import ErrorBoundary from './ErrorBoundary'; // Import the ErrorBoundary component
+import { searchIngredients } from '../services/spoonacularService';
+import ErrorBoundary from './ErrorBoundary';
 
 interface IngredientComboboxProps {
     value: string;
@@ -10,29 +10,58 @@ interface IngredientComboboxProps {
     label?: string;
 }
 
+interface Ingredient {
+    id: number;
+    name: string;
+    image: string | null;
+}
+
 const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueChange, label }) => {
     const [matchingIngredients, setMatchingIngredients] = useState<string[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    // Debounced search function
+    const debouncedSearch = useCallback(
+        async (query: string) => {
+            if (!query || query.length < 2) {
+                setMatchingIngredients([]);
+                return;
+            }
+            
+            setIsLoading(true);
+            try {
+                const ingredients = await searchIngredients(query);
+                if (Array.isArray(ingredients)) {
+                    const ingredientNames = ingredients.map((ingredient: Ingredient) => ingredient.name);
+                    setMatchingIngredients(ingredientNames);
+                } else {
+                    console.error("Invalid response format:", ingredients);
+                    setMatchingIngredients([]);
+                }
+            } catch (error) {
+                console.error("Error in ingredient search:", error);
+                setMatchingIngredients([]);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        []
+    );
     
     // Update matching ingredients when value changes
     useEffect(() => {
-        try {
-            // We ensure this always returns an array
+        const timeoutId = setTimeout(() => {
             const safeQuery = typeof value === "string" ? value : "";
-            const ingredients = findMatchingIngredients(safeQuery);
-            
-            // Extra safety check to ensure we always set an array
-            if (Array.isArray(ingredients)) {
-                setMatchingIngredients(ingredients);
+            if (safeQuery.length >= 2) {
+                debouncedSearch(safeQuery);
             } else {
-                console.error("findMatchingIngredients did not return an array:", ingredients);
                 setMatchingIngredients([]);
             }
-        } catch (error) {
-            console.error("Error in IngredientCombobox:", error);
-            setMatchingIngredients([]);
-        }
-    }, [value]);
-
+        }, 300);
+        
+        return () => clearTimeout(timeoutId);
+    }, [value, debouncedSearch]);
+    
     // Safely handle value changes
     const handleValueChange = (newValue: string) => {
         try {
@@ -43,15 +72,16 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
             console.error("Error in handleValueChange:", error);
         }
     };
-
+    
     return (
-        <ErrorBoundary> {/* Wrap your component with ErrorBoundary */}
+        <ErrorBoundary>
             <Combobox
                 value={value || ""}
                 onValueChange={handleValueChange}
                 items={matchingIngredients}
                 label={label}
-                isValid={value === '' || isValidIngredient(value)}
+                isValid={true}
+                isLoading={isLoading}
             />
         </ErrorBoundary>
     );
