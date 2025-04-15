@@ -11,28 +11,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Search } from "lucide-react";
-import IngredientCombobox from "@/components/IngredientCombobox";
 
 const FindRecipe = () => {
     const [inputMethod, setInputMethod] = useState("manual");
-    const [ingredients, setIngredients] = useState<string[]>([""]); // Simplified state
+    const [ingredients, setIngredients] = useState<{ name: string; quantity: string }[]>([
+        { name: "", quantity: "" }
+    ]);
 
     const handleAddIngredient = () => {
-        setIngredients([...ingredients, ""]); // Add empty string
+        setIngredients([...ingredients, { name: "", quantity: "" }]);
     };
 
-    const handleIngredientChange = (index: number, value: string) => {
+    const handleIngredientChange = (index: number, field: "name" | "quantity", value: string) => {
         try {
-            console.log("handleIngredientChange - Start. index:", index, "value:", value);
-            console.log("handleIngredientChange - ingredients before:", JSON.stringify([...ingredients])); 
             const updatedIngredients = [...ingredients];
-            console.log("handleIngredientChange - updatedIngredients before:", JSON.stringify([...updatedIngredients]));
-            console.log("handleIngredientChange - updatedIngredients[index] before:", updatedIngredients[index]); // Log before assignment
-            updatedIngredients[index] = value;
-            console.log("handleIngredientChange - updatedIngredients[index] after:", updatedIngredients[index]); // Log after assignment
-            console.log("handleIngredientChange - ingredients after:", JSON.stringify([...ingredients]));
+            updatedIngredients[index][field] = value;
             setIngredients(updatedIngredients);
-            console.log("handleIngredientChange - End");
         } catch (error) {
             console.error("Error updating ingredient:", error);
         }
@@ -69,10 +63,17 @@ const FindRecipe = () => {
                     <div className="space-y-4 mb-8">
                         {ingredients.map((ingredient, index) => (
                             <div key={index} className="flex gap-4">
-                                <IngredientCombobox
-                                    value={ingredient} // Simplified value prop
-                                    onValueChange={(value) => handleIngredientChange(index, value)} // Simplified handler
-                                    label="Ingredient" // Changed label
+                                <div className="flex-grow">
+                                    <IngredientCombobox
+                                        value={ingredient.name}
+                                        onValueChange={(value) => handleIngredientChange(index, "name", value)}
+                                    />
+                                </div>
+                                <Input
+                                    className="w-1/3"
+                                    placeholder="Quantity"
+                                    value={ingredient.quantity}
+                                    onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
                                 />
                             </div>
                         ))}
@@ -87,8 +88,8 @@ const FindRecipe = () => {
                     </div>
 
                     <Button
-                         className="w-full py-6 text-lg"
-                         onClick={handleGenerateRecipe}
+                        className="w-full py-6 text-lg"
+                        onClick={handleGenerateRecipe}
                     >
                         <Search className="w-5 h-5 mr-2" />
                         Generate Recipe
