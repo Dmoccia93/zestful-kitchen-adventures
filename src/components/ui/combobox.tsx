@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Command, CommandInput, CommandList, CommandItem } from './command'; // Adjust if needed
 
@@ -16,32 +15,21 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
 
     // Safely handle potentially undefined items
     const safeItems = Array.isArray(items) ? items : [];
-    
+
     // Use useCallback to memoize the filter function
     const filterItems = useCallback((itemsToFilter: string[], searchQuery: string) => {
-        if (!Array.isArray(itemsToFilter)) return [];
-        
-        try {
-            if (!searchQuery) return itemsToFilter.slice(0, 100); // Return first 100 ingredients if query is empty
-            
-            const lowerCaseQuery = searchQuery.toLowerCase();
-            return itemsToFilter.filter(item => {
-                if (!item || typeof item !== 'string') return false;
-                return item.toLowerCase().includes(lowerCaseQuery);
-            });
-        } catch (error) {
-            console.error("Error filtering items:", error);
-            return [];
-        }
+        return (Array.isArray(itemsToFilter) ? itemsToFilter : []).filter(item => { // Safe filtering
+            if (!item || typeof item !== 'string') return false;
+            if (!searchQuery) return true;
+            return item.toLowerCase().includes(searchQuery.toLowerCase());
+        });
     }, []);
 
     const filteredItems = filterItems(safeItems, query);
 
     // Update query when value changes (and handle undefined)
     useEffect(() => {
-        if (value !== undefined && value !== null) {
-            setQuery(String(value));
-        }
+        setQuery(String(value || "")); // Ensure query is always a string
     }, [value]);
 
     // Safe selection handler that prevents the undefined issue
@@ -53,12 +41,24 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
             setIsOpen(false);
             return;
         }
-    
+
         const safeSelectedItem = String(selectedItem);
+        console.log("handleSelect - safeSelectedItem:", safeSelectedItem); // Log the string value
         setQuery(safeSelectedItem);
+        console.log("handleSelect - Before onValueChange. safeSelectedItem:", safeSelectedItem, "value:", value); // Log before onValueChange
         onValueChange(safeSelectedItem);
+        console.log("handleSelect - After onValueChange. safeSelectedItem:", safeSelectedItem, "value:", value); // Log after onValueChange
         setIsOpen(false);
-    }, [onValueChange]);
+    }, [onValueChange, value]); // Add value as a dependency
+
+    console.log("🔍 Combobox debug", {
+        items: safeItems,
+        value,
+        filteredItems,
+        query,
+        itemsLength: safeItems.length,
+        filteredLength: filteredItems.length,
+    });
 
     return (
         <div className="w-full">
@@ -74,11 +74,9 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
                         placeholder="Search ingredients..."
                         value={query}
                         onValueChange={(newQuery) => {
-                            if (newQuery === undefined || newQuery === null) {
-                                newQuery = "";
-                            }
-                            setQuery(newQuery);
-                            // Only update parent value when typing, not when selecting
+                            const safeNewQuery = String(newQuery || ""); // Ensure newQuery is a string
+                            setQuery(safeNewQuery);
+                            onValueChange(safeNewQuery); // Update parent
                             setIsOpen(true);
                         }}
                         onBlur={() => {

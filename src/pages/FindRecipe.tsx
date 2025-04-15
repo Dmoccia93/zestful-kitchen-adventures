@@ -75,7 +75,7 @@ const FindRecipe = () => {
 
                     <div className="space-y-4 mb-8">
                         {/* Corrected code: Only one ingredients.map() */}
-                        {console.log("Ingredients before map:", JSON.stringify([...ingredients]))} 
+                        {console.log("Ingredients before map:", JSON.stringify([...ingredients]))}
                         {ingredients.map((ingredient, index) => {
                             console.log("Mapping ingredient - index:", index, "ingredient:", JSON.stringify({...ingredient}));
                             return (
