@@ -1,4 +1,3 @@
-
 import { ReactNode } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -35,12 +34,10 @@ const OptionCard = ({
   return (
     <Card className={`overflow-hidden border-none shadow-md ${colorClass} h-full flex flex-col`}>
       <div className="relative h-48 sm:h-56 overflow-hidden">
-<<<<<<< HEAD
-        <img 
-          src={imageSrc} 
-          alt={title} 
+        <img
+          src={imageSrc}
+          alt={title}
           className={`w-full h-full object-cover object-center`}
-=======
         />
       </div>
       <div className="p-6 flex flex-col flex-grow">
