@@ -45,20 +45,19 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
     }, [value]);
 
     // Safe selection handler that prevents the undefined issue
-    const handleSelect = useCallback((selectedItem: string) => {
-        try {
-            if (selectedItem === undefined || selectedItem === null) {
-                console.log("handleSelect received undefined/null item");
-                return;
-            }
-
-            const safeSelectedItem = String(selectedItem);
-            setQuery(safeSelectedItem);
-            onValueChange(safeSelectedItem);
+    const handleSelect = useCallback((selectedItem: string | undefined | null) => { // Allow null
+        if (selectedItem === undefined || selectedItem === null) {
+            console.warn("handleSelect received undefined/null item", selectedItem); // Use warn instead of log
+            setQuery(""); // Clear query
+            onValueChange(""); // Pass empty string
             setIsOpen(false);
-        } catch (error) {
-            console.error("Error in handleSelect:", error);
+            return;
         }
+    
+        const safeSelectedItem = String(selectedItem);
+        setQuery(safeSelectedItem);
+        onValueChange(safeSelectedItem);
+        setIsOpen(false);
     }, [onValueChange]);
 
     return (
