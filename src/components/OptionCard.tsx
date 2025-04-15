@@ -32,14 +32,7 @@ const OptionCard = ({
   );
 
   return (
-    <Card
-      className={`rounded-lg border text-card-foreground overflow-hidden border-none shadow-md bg-${colorClass} h-full flex flex-col relative ${
-        title.includes("weekly") ? 'opacity-60' : ''
-      }`}
-    >
-      {title.includes("weekly") && (
-        <div className="absolute inset-0 bg-white opacity-40 pointer-events-none"></div>
-      )}
+    <Card className={`overflow-hidden border-none shadow-md h-full flex flex-col relative`}>
       <div className="relative h-48 sm:h-56 overflow-hidden">
         <img
           src={imageSrc}
@@ -49,7 +42,7 @@ const OptionCard = ({
           }`}
         />
       </div>
-      <div className="p-6 flex flex-col flex-grow">
+      <div className={`p-6 flex flex-col flex-grow ${colorClass}`}> {/* Applied colorClass here */}
         <h3 className="text-xl sm:text-2xl font-bold mb-3">{title}</h3>
         {title.includes("weekly") && (
           <span className="text-red-500 font-semibold text-sm sm:text-base">(Coming Soon)</span>
