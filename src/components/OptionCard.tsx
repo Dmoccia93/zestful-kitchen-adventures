@@ -1,5 +1,3 @@
-TypeScript
-
 import { ReactNode } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -12,7 +10,7 @@ interface OptionCardProps {
   colorClass: string;
   buttonText: string;
   icon?: ReactNode;
-  imagePosition?: 'top' | 'center'; // We will still keep this prop for potential future use
+  imagePosition?: 'top' | 'center';
   linkTo?: string;
 }
 
@@ -23,7 +21,7 @@ const OptionCard = ({
   colorClass,
   buttonText,
   icon,
-  imagePosition = 'center', // Default value remains 'center'
+  imagePosition = 'center',
   linkTo
 }: OptionCardProps) => {
   const ButtonContent = () => (
@@ -35,17 +33,20 @@ const OptionCard = ({
 
   return (
     <Card
-      className={`rounded-lg border text-card-foreground overflow-hidden border-none shadow-md bg-${colorClass} h-full flex flex-col ${
-        title.includes("weekly")
-          ? 'filter brightness-[60%] grayscale-[50%]'
-          : ''
+      className={`rounded-lg border text-card-foreground overflow-hidden border-none shadow-md bg-${colorClass} h-full flex flex-col relative ${
+        title.includes("weekly") ? 'opacity-60' : ''
       }`}
     >
+      {title.includes("weekly") && (
+        <div className="absolute inset-0 bg-white opacity-40 pointer-events-none"></div>
+      )}
       <div className="relative h-48 sm:h-56 overflow-hidden">
         <img
           src={imageSrc}
           alt={title}
-          className={`w-full h-full object-cover object-center`}
+          className={`w-full h-full object-cover object-center ${
+            title.includes("weekly") ? 'filter grayscale-[80%] brightness-75' : ''
+          }`}
         />
       </div>
       <div className="p-6 flex flex-col flex-grow">
