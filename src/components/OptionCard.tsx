@@ -40,12 +40,16 @@ const OptionCard = ({
       {!title.includes("weekly") && linkTo ? (
         <Link to={linkTo} className="w-full h-full block">
           <Card className={cardClassName}>
-            <div className="relative h-48 sm:h-56 overflow-hidden">
-              <img
-                src={imageSrc}
-                alt={title}
-                className={`w-full h-full object-cover object-center`}
-              />
+          <div className="relative h-48 sm:h-56 overflow-hidden">
+  <img
+    src={imageSrc}
+    alt={title}
+    loading="eager" // Add this attribute here
+    className={`w-full h-full object-cover object-center ${
+      title.includes("weekly") ? 'filter grayscale-[80%] brightness-75 opacity-40' : ''
+    }`}
+  />
+</div>
             </div>
             <div className={`p-6 flex flex-col flex-grow ${colorClass}`}>
               <h3 className="text-xl sm:text-2xl font-bold mb-3">{title}</h3>
