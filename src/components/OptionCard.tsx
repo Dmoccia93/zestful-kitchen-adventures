@@ -44,7 +44,7 @@ const OptionCard = ({
               <img
                 src={imageSrc}
                 alt={title}
-                loading="eager" // Added loading="eager"
+                loading="eager"
                 className={`w-full h-full object-cover object-center`}
               />
             </div>
@@ -63,11 +63,16 @@ const OptionCard = ({
             <img
               src={imageSrc}
               alt={title}
-              loading="eager" // Added loading="eager"
+              loading="eager"
               className={`w-full h-full object-cover object-center ${
                 title.includes("weekly") ? 'filter grayscale-[80%] brightness-75 opacity-40' : ''
               }`}
             />
+            {title.includes("weekly") && (
+              <div className="absolute top-4 right-4 bg-red-500 text-white py-1 px-3 text-xs font-bold rotate-45">
+                COMING SOON
+              </div>
+            )}
           </div>
           <div className={`p-6 flex flex-col flex-grow ${colorClass} ${title.includes("weekly") ? 'opacity-40' : ''}`}>
             <h3 className="text-xl sm:text-2xl font-bold mb-3">{title}</h3>
