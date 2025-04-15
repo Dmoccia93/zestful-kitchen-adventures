@@ -5,7 +5,6 @@ import Footer from '@/components/Footer';
 import Hero from '@/components/Hero';
 import NavBar from '@/components/NavBar';
 import OptionsSection from '@/components/OptionsSection';
-import TestimonialSection from '@/components/TestimonialSection';
 
 const Index = () => {
   return (
@@ -15,7 +14,6 @@ const Index = () => {
         <Hero />
         <OptionsSection />
         <BenefitsSection />
-        <TestimonialSection />
         <CallToAction />
       </main>
       <Footer />
