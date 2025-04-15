@@ -1,11 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
-import { Command, CommandInput, CommandList, CommandItem } from './command';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Command, CommandInput, CommandList, CommandItem } from './command'; // Adjust if needed
 
 interface ComboboxProps {
     value: string;
     onValueChange: (value: string) => void;
-    items: string[];
+    items: string[] | undefined; // Allow undefined
     label?: string;
     isValid?: boolean;
 }
@@ -13,44 +12,63 @@ interface ComboboxProps {
 const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label, isValid = true }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState(value || "");
-    
-    // Extra safety check to ensure items is always a valid array
+
+    // Safely handle potentially undefined items
     const safeItems = Array.isArray(items) ? items : [];
     
-    // Filter items based on the query
-    const filteredItems = safeItems.filter(item => {
-        if (!item || typeof item !== 'string') return false;
-        if (!query) return true;
-        return item.toLowerCase().includes(query.toLowerCase());
-    });
+    // Use useCallback to memoize the filter function
+    const filterItems = useCallback((itemsToFilter: string[], searchQuery: string) => {
+        return itemsToFilter.filter(item => {
+            if (!item || typeof item !== 'string') return false;
+            if (!searchQuery) return true;
+            return item.toLowerCase().includes(searchQuery.toLowerCase());
+        });
+    }, []);
 
-    // Update query when value changes
+    const filteredItems = filterItems(safeItems, query);
+
+    // Update query when value changes (and handle undefined)
     useEffect(() => {
-        setQuery(value || "");
+        setQuery(String(value || "")); // Ensure query is always a string
     }, [value]);
 
-    console.log("🔍 Combobox debug", { 
-        items: safeItems, 
-        value, 
-        filteredItems, 
+    const handleSelect = useCallback((selectedItem: string | undefined) => {
+        if (!selectedItem) {
+            setQuery("");
+            setIsOpen(false);
+            onValueChange(""); // Or handle this more gracefully based on your needs
+            return;
+        }
+
+        const safeSelectedItem = String(selectedItem); // Ensure string
+
+        setQuery(safeSelectedItem);
+        onValueChange(safeSelectedItem);
+        setIsOpen(false);
+    }, [onValueChange]); // Add onValueChange as a dependency
+
+    console.log("🔍 Combobox debug", {
+        items: safeItems,
+        value,
+        filteredItems,
         query,
         itemsLength: safeItems.length,
-        filteredLength: filteredItems.length
+        filteredLength: filteredItems.length,
     });
 
     return (
         <div className="w-full">
             {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
             <div className={`relative ${!isValid ? 'ring-2 ring-destructive rounded-md' : ''}`}>
-                <Command 
+                <Command
                     className="rounded-lg border border-input"
-                    onKeyDown={(e) => { 
-                        if (e.key === 'Enter') setIsOpen(false); 
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') setIsOpen(false);
                     }}
                 >
-                    <CommandInput 
-                        placeholder="Search ingredients..." 
-                        value={query} 
+                    <CommandInput
+                        placeholder="Search ingredients..."
+                        value={query}
                         onValueChange={(newQuery) => {
                             if (newQuery === undefined || newQuery === null) {
                                 newQuery = "";
@@ -58,7 +76,7 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
                             setQuery(newQuery);
                             onValueChange(newQuery);
                             setIsOpen(true);
-                        }} 
+                        }}
                     />
                     {isOpen && filteredItems.length > 0 && (
                         <CommandList>
@@ -66,12 +84,7 @@ const Combobox: React.FC<ComboboxProps> = ({ value, onValueChange, items, label,
                                 <CommandItem
                                     key={`${item}-${index}`}
                                     value={item}
-                                    onSelect={(newValue) => {
-                                        if (!newValue) return; // ⛑️ Safeguard against undefined
-                                        onValueChange(newValue === value ? "" : newValue);
-                                        setQuery(newValue);
-                                        setIsOpen(false);
-                                    }}
+                                    onSelect={handleSelect} // Use handleSelect
                                 >
                                     {item}
                                 </CommandItem>
