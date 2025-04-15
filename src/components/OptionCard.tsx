@@ -76,9 +76,7 @@ const OptionCard = ({
           </div>
           <div className={`p-6 flex flex-col flex-grow ${colorClass} ${title.includes("weekly") ? 'opacity-40' : ''}`}>
             <h3 className="text-xl sm:text-2xl font-bold mb-3">{title}</h3>
-            {title.includes("weekly") && (
-              <span className="text-red-500 font-semibold text-sm sm:text-base">(Coming Soon)</span>
-            )}
+            {title.includes("weekly") &&}
             <p className="text-sm sm:text-base mb-6 flex-grow">{description}</p>
             <Button className="w-full py-5 bg-white text-foreground hover:bg-white/90 flex items-center justify-center gap-2">
               <ButtonContent />
