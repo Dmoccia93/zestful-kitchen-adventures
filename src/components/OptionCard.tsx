@@ -1,3 +1,9 @@
+Yes, we can definitely make the fade effect on the right component stronger. To do this, we can adjust the opacity values in the Tailwind CSS classes we've applied. Lowering the opacity will make the element more transparent and thus appear more faded.
+
+Here's the updated OptionCard code with a stronger fade effect for the right component:
+
+TypeScript
+
 import { ReactNode } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -38,11 +44,11 @@ const OptionCard = ({
           src={imageSrc}
           alt={title}
           className={`w-full h-full object-cover object-center ${
-            title.includes("weekly") ? 'filter grayscale-[80%] brightness-75 opacity-60' : ''
+            title.includes("weekly") ? 'filter grayscale-[80%] brightness-75 opacity-40' : ''
           }`}
         />
       </div>
-      <div className={`p-6 flex flex-col flex-grow ${colorClass} ${title.includes("weekly") ? 'opacity-60' : ''}`}>
+      <div className={`p-6 flex flex-col flex-grow ${colorClass} ${title.includes("weekly") ? 'opacity-40' : ''}`}>
         <h3 className="text-xl sm:text-2xl font-bold mb-3">{title}</h3>
         {title.includes("weekly") && (
           <span className="text-red-500 font-semibold text-sm sm:text-base">(Coming Soon)</span>
