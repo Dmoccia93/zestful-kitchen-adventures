@@ -35,10 +35,12 @@ const OptionCard = ({
   return (
     <Card className={`overflow-hidden border-none shadow-md ${colorClass} h-full flex flex-col`}>
       <div className="relative h-48 sm:h-56 overflow-hidden">
-        <img
-          src={imageSrc}
-          alt={title}
-          className={`w-full h-full object-cover object-center`} {/* Modified line */}
+<<<<<<< HEAD
+        <img 
+          src={imageSrc} 
+          alt={title} 
+          className={`w-full h-full object-cover object-center`}
+=======
         />
       </div>
       <div className="p-6 flex flex-col flex-grow">
