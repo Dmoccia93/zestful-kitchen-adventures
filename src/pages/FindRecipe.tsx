@@ -62,13 +62,11 @@ const FindRecipe = () => {
                     <div className="space-y-4 mb-8">
                         {ingredients.map((ingredient, index) => (
                             <div key={index} className="flex gap-4">
-                                <div className="flex-grow">
-                                    <IngredientCombobox
-                                        value={ingredient} // Simplified value prop
-                                        onValueChange={(value) => handleIngredientChange(index, value)} // Simplified handler
-                                        label="Ingredient" // Changed label
-                                    />
-                                </div>
+                                <IngredientCombobox
+                                    value={ingredient} // Simplified value prop
+                                    onValueChange={(value) => handleIngredientChange(index, value)} // Simplified handler
+                                    label="Ingredient" // Changed label
+                                />
                             </div>
                         ))}
                         <Button
