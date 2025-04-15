@@ -1,3 +1,5 @@
+TypeScript
+
 import { ReactNode } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -32,7 +34,13 @@ const OptionCard = ({
   );
 
   return (
-    <Card className={`overflow-hidden border-none shadow-md ${colorClass} h-full flex flex-col`}>
+    <Card
+      className={`rounded-lg border text-card-foreground overflow-hidden border-none shadow-md bg-${colorClass} h-full flex flex-col ${
+        title.includes("weekly")
+          ? 'filter brightness-[60%] grayscale-[50%]'
+          : ''
+      }`}
+    >
       <div className="relative h-48 sm:h-56 overflow-hidden">
         <img
           src={imageSrc}
