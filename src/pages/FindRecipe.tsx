@@ -21,11 +21,18 @@ const FindRecipe = () => {
         setIngredients([...ingredients, ""]); // Add empty string
     };
 
-    const handleIngredientChange = (index: number, value: string) => { // Simplified function
+    const handleIngredientChange = (index: number, value: string) => {
         try {
+            console.log("handleIngredientChange - Start. index:", index, "value:", value);
+            console.log("handleIngredientChange - ingredients before:", JSON.stringify([...ingredients])); 
             const updatedIngredients = [...ingredients];
+            console.log("handleIngredientChange - updatedIngredients before:", JSON.stringify([...updatedIngredients]));
+            console.log("handleIngredientChange - updatedIngredients[index] before:", updatedIngredients[index]); // Log before assignment
             updatedIngredients[index] = value;
+            console.log("handleIngredientChange - updatedIngredients[index] after:", updatedIngredients[index]); // Log after assignment
+            console.log("handleIngredientChange - ingredients after:", JSON.stringify([...ingredients]));
             setIngredients(updatedIngredients);
+            console.log("handleIngredientChange - End");
         } catch (error) {
             console.error("Error updating ingredient:", error);
         }
