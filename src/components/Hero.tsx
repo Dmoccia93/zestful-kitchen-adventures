@@ -7,7 +7,7 @@ const Hero = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-recipe-sage">
-            <span className="italic font-serif"> Tired of always eating the same stuff? </span>
+          Tired of eating  <span className="italic font-serif"> always the same stuff? </span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mb-12">
             Get started today with an exciting recipe tailored to what you have in your fridge or get personalized
