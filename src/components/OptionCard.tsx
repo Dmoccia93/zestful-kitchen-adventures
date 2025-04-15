@@ -11,18 +11,18 @@ interface OptionCardProps {
   colorClass: string;
   buttonText: string;
   icon?: ReactNode;
-  imagePosition?: 'top' | 'center';
+  imagePosition?: 'top' | 'center'; // We will still keep this prop for potential future use
   linkTo?: string;
 }
 
-const OptionCard = ({ 
-  title, 
-  description, 
-  imageSrc, 
+const OptionCard = ({
+  title,
+  description,
+  imageSrc,
   colorClass,
   buttonText,
   icon,
-  imagePosition = 'center',
+  imagePosition = 'center', // Default value remains 'center'
   linkTo
 }: OptionCardProps) => {
   const ButtonContent = () => (
@@ -35,10 +35,10 @@ const OptionCard = ({
   return (
     <Card className={`overflow-hidden border-none shadow-md ${colorClass} h-full flex flex-col`}>
       <div className="relative h-48 sm:h-56 overflow-hidden">
-        <img 
-          src={imageSrc} 
-          alt={title} 
-          className={`w-full h-full object-cover ${imagePosition === 'center' ? 'object-center' : 'object-top'}`}
+        <img
+          src={imageSrc}
+          alt={title}
+          className={`w-full h-full object-cover object-center`} {/* Modified line */}
         />
       </div>
       <div className="p-6 flex flex-col flex-grow">
@@ -47,7 +47,7 @@ const OptionCard = ({
           <span className="text-red-500 font-semibold text-sm sm:text-base">(Coming Soon)</span>
         )}
         <p className="text-sm sm:text-base mb-6 flex-grow">{description}</p>
-        
+
         {linkTo ? (
           <Link to={linkTo} className="w-full">
             <Button className="w-full py-5 bg-white text-foreground hover:bg-white/90 flex items-center justify-center gap-2">
