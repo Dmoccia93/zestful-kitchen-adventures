@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from './command'; 
+import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from './command';
 import { Loader2 } from 'lucide-react';
 
 interface ComboboxProps {
@@ -12,11 +11,11 @@ interface ComboboxProps {
     isLoading?: boolean;
 }
 
-const Combobox: React.FC<ComboboxProps> = ({ 
-    value, 
-    onValueChange, 
-    items, 
-    label, 
+const Combobox: React.FC<ComboboxProps> = ({
+    value,
+    onValueChange,
+    items,
+    label,
     isValid = true,
     isLoading = false
 }) => {
@@ -28,28 +27,43 @@ const Combobox: React.FC<ComboboxProps> = ({
 
     // Use useCallback to memoize the filter function
     const filterItems = useCallback((itemsToFilter: string[], searchQuery: string) => {
+        console.log("filterItems called with:", { itemsToFilter, searchQuery }); // Log input
+
         const safeItemsToFilter = Array.isArray(itemsToFilter) ? itemsToFilter : []; // Safe handling
-    
-        if (!searchQuery) return safeItemsToFilter.slice(0, 100); // Show first 100 on empty
-        if (searchQuery.length === 1) return safeItemsToFilter.filter(item => {
-            if (!item || typeof item !== 'string') return false;
-            return item.toLowerCase().startsWith(searchQuery.toLowerCase());
-        });
-        return safeItemsToFilter.filter(item => {
+        console.log("safeItemsToFilter:", safeItemsToFilter); // Log safe array
+
+        if (!searchQuery) {
+            const slicedItems = safeItemsToFilter.slice(0, 100);
+            console.log("slicedItems (empty query):", slicedItems); // Log slice
+            return slicedItems;
+        }
+        if (searchQuery.length === 1) {
+            const filteredStart = safeItemsToFilter.filter(item => {
+                if (!item || typeof item !== 'string') return false;
+                return item.toLowerCase().startsWith(searchQuery.toLowerCase());
+            });
+            console.log("filteredStart:", filteredStart); // Log filter result
+            return filteredStart;
+        }
+        const filteredIncludes = safeItemsToFilter.filter(item => {
             if (!item || typeof item !== 'string') return false;
             return item.toLowerCase().includes(searchQuery.toLowerCase());
         });
+        console.log("filteredIncludes:", filteredIncludes); // Log filter result
+        return filteredIncludes;
     }, []);
 
     const filteredItems = filterItems(safeItems, query);
 
     // Update query when value changes (and handle undefined)
     useEffect(() => {
+        console.log("useEffect - value:", value);
         setQuery(String(value || "")); // Ensure query is always a string
     }, [value]);
 
     // Safe selection handler that prevents the undefined issue
     const handleSelect = useCallback((selectedItem: string | undefined | null) => { // Allow null
+        console.log("handleSelect - selectedItem:", selectedItem);
         if (selectedItem === undefined || selectedItem === null) {
             setQuery(""); // Clear query
             onValueChange(""); // Pass empty string
@@ -93,7 +107,7 @@ const Combobox: React.FC<ComboboxProps> = ({
                             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                         )}
                     </div>
-                    
+
                     {isOpen && (
                         <CommandList>
                             {filteredItems.length === 0 && !isLoading ? (
