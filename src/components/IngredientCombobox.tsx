@@ -77,16 +77,17 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
         }
     };
 
-    // Ensure matchingIngredients is always a valid array
+    // Ensure we never pass undefined or null to the Combobox component
+    const safeValue = value || "";
     const safeIngredients = Array.isArray(matchingIngredients) ? matchingIngredients : [];
 
     return (
         <ErrorBoundary>
             <Combobox
-                value={value || ""}
+                value={safeValue}
                 onValueChange={handleValueChange}
                 items={safeIngredients}
-                label={label}
+                label={label || ""}
                 isValid={true}
                 isLoading={isLoading}
             />

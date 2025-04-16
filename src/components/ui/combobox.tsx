@@ -21,28 +21,37 @@ const Combobox: React.FC<ComboboxProps> = ({
     isLoading = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [query, setQuery] = useState(value || "");
+    const [query, setQuery] = useState("");
 
-    // Safely handle potentially undefined items
+    // Ensure values are never undefined
+    const safeValue = value || "";
     const safeItems = Array.isArray(items) ? items : [];
+    const safeLabel = label || "";
+
+    // Update query when value changes from parent
+    useEffect(() => {
+        setQuery(safeValue);
+    }, [safeValue]);
 
     // Use useCallback to memoize the filter function
     const filterItems = useCallback((itemsToFilter: string[], searchQuery: string) => {
         // Ensure itemsToFilter is an array before attempting to filter
-        const safeItemsToFilter = Array.isArray(itemsToFilter) ? itemsToFilter : [];
+        if (!Array.isArray(itemsToFilter)) {
+            return [];
+        }
         
         if (!searchQuery) {
-            return safeItemsToFilter.slice(0, 100);
+            return itemsToFilter.slice(0, 100);
         }
         
         if (searchQuery.length === 1) {
-            return safeItemsToFilter.filter(item => {
+            return itemsToFilter.filter(item => {
                 if (!item || typeof item !== 'string') return false;
                 return item.toLowerCase().startsWith(searchQuery.toLowerCase());
             });
         }
         
-        return safeItemsToFilter.filter(item => {
+        return itemsToFilter.filter(item => {
             if (!item || typeof item !== 'string') return false;
             return item.toLowerCase().includes(searchQuery.toLowerCase());
         });
@@ -50,52 +59,59 @@ const Combobox: React.FC<ComboboxProps> = ({
 
     const filteredItems = filterItems(safeItems, query);
 
-    // Update query when value changes (and handle undefined)
-    useEffect(() => {
-        setQuery(String(value || "")); // Ensure query is always a string
-    }, [value]);
-
     // Safe selection handler that prevents the undefined issue
     const handleSelect = useCallback((selectedItem: string | undefined | null) => {
+        // Handle when selectedItem is undefined or null
         if (selectedItem === undefined || selectedItem === null) {
-            setQuery(""); // Clear query
-            onValueChange(""); // Pass empty string
+            onValueChange("");
             setIsOpen(false);
             return;
         }
 
+        // Ensure selectedItem is always a string
         const safeSelectedItem = String(selectedItem);
         setQuery(safeSelectedItem);
         onValueChange(safeSelectedItem);
         setIsOpen(false);
     }, [onValueChange]);
 
+    // Handle Enter key press safely
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent form submission
+            if (query) {
+                onValueChange(query);
+            }
+            setIsOpen(false);
+        }
+    };
+
     return (
         <div className="w-full">
-            {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+            {safeLabel && <label className="block text-sm font-medium text-gray-700 mb-1">{safeLabel}</label>}
             <div className={`relative ${!isValid ? 'ring-2 ring-destructive rounded-md' : ''}`}>
                 <Command
                     className="rounded-lg border border-input"
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault(); // Prevent default to avoid form submission
-                            setIsOpen(false);
-                        }
-                    }}
+                    onKeyDown={handleKeyDown}
                 >
                     <div className="flex items-center px-3">
                         <CommandInput
                             placeholder="Search ingredients..."
                             value={query}
                             onValueChange={(newQuery) => {
-                                const safeNewQuery = String(newQuery || ""); // Ensure newQuery is a string
+                                // Ensure newQuery is never undefined
+                                const safeNewQuery = newQuery ?? "";
                                 setQuery(safeNewQuery);
-                                onValueChange(safeNewQuery); // Update parent
+                                onValueChange(safeNewQuery);
                                 setIsOpen(true);
                             }}
                             onBlur={() => {
-                                // On blur, update the parent value with the current query
-                                onValueChange(query);
+                                setTimeout(() => {
+                                    setIsOpen(false);
+                                }, 200);
+                            }}
+                            onFocus={() => {
+                                setIsOpen(true);
                             }}
                             className="flex-1"
                         />
@@ -109,15 +125,17 @@ const Combobox: React.FC<ComboboxProps> = ({
                             {filteredItems.length === 0 && !isLoading ? (
                                 <CommandEmpty>No ingredients found.</CommandEmpty>
                             ) : (
-                                filteredItems.slice(0, 10).map((item, index) => (
-                                    <CommandItem
-                                        key={`${item}-${index}`}
-                                        value={item}
-                                        onSelect={handleSelect}
-                                    >
-                                        {item}
-                                    </CommandItem>
-                                ))
+                                <>
+                                    {Array.isArray(filteredItems) && filteredItems.slice(0, 10).map((item, index) => (
+                                        <CommandItem
+                                            key={`${item}-${index}`}
+                                            value={item || ""}
+                                            onSelect={handleSelect}
+                                        >
+                                            {item}
+                                        </CommandItem>
+                                    ))}
+                                </>
                             )}
                         </CommandList>
                     )}
