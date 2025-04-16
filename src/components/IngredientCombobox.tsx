@@ -31,6 +31,7 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
             setIsLoading(true);
             try {
                 const ingredients = await searchIngredients(query);
+                console.log('API response:', ingredients);
                 
                 // More strict validation of the returned data
                 if (Array.isArray(ingredients) && ingredients.length > 0) {
@@ -43,9 +44,12 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
                         )
                         .map((ingredient: Ingredient) => ingredient.name);
                     
+                    console.log('Transformed ingredient names:', ingredientNames);
+                    
                     // Ensure we always set a valid array
-                    setMatchingIngredients(ingredientNames || []);
+                    setMatchingIngredients(Array.isArray(ingredientNames) ? ingredientNames : []);
                 } else {
+                    console.log('No ingredients found or invalid response, setting empty array');
                     setMatchingIngredients([]);
                 }
             } catch (error) {
@@ -96,7 +100,8 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
         safeValue,
         matchingIngredientsType: typeof matchingIngredients,
         isArray: Array.isArray(matchingIngredients),
-        safeIngredientsLength: safeIngredients.length
+        safeIngredientsLength: safeIngredients.length,
+        safeIngredients
     });
 
     return (

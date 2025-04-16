@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from './command';
 import { Loader2 } from 'lucide-react';
 
@@ -23,22 +23,27 @@ const Combobox: React.FC<ComboboxProps> = ({
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [internalItems, setInternalItems] = useState<string[]>([]);
+    const commandRef = useRef<HTMLDivElement>(null);
 
     // Ensure values are never undefined
     const safeValue = typeof value === 'string' ? value : '';
     const safeLabel = typeof label === 'string' ? label : '';
 
-    // Update internal items when props change
+    // Update internal items when props change - with additional safety checks
     useEffect(() => {
-        const safeItems = Array.isArray(items) ? items : [];
-        setInternalItems(safeItems);
-        
-        console.log('Combobox items updated:', {
-            itemsType: typeof items,
-            isArray: Array.isArray(items),
-            length: safeItems.length,
-            sample: safeItems.slice(0, 3)
-        });
+        // Defensive check - ensure items is an array before setting state
+        if (items === undefined || items === null) {
+            console.log('Items is null/undefined, setting empty array');
+            setInternalItems([]);
+        } else if (!Array.isArray(items)) {
+            console.warn('Items is not an array:', items);
+            setInternalItems([]);
+        } else {
+            // Filter out any non-string values that might have slipped through
+            const safeItems = items.filter(item => typeof item === 'string');
+            console.log('Setting internal items:', safeItems);
+            setInternalItems(safeItems);
+        }
     }, [items]);
 
     // Update query when value changes from parent
@@ -61,32 +66,27 @@ const Combobox: React.FC<ComboboxProps> = ({
             return [];
         }
         
+        // Additional safety - filter out non-string items
+        const safeItemsToFilter = itemsToFilter.filter(item => typeof item === 'string');
+        
         if (!searchQuery) {
-            return itemsToFilter.slice(0, 100);
+            return safeItemsToFilter.slice(0, 100);
         }
         
         if (searchQuery.length === 1) {
-            return itemsToFilter.filter(item => {
-                if (typeof item !== 'string') {
-                    console.warn('Non-string item found:', item);
-                    return false;
-                }
-                return item.toLowerCase().startsWith(searchQuery.toLowerCase());
-            });
+            return safeItemsToFilter.filter(item => item.toLowerCase().startsWith(searchQuery.toLowerCase()));
         }
         
-        return itemsToFilter.filter(item => {
-            if (typeof item !== 'string') {
-                console.warn('Non-string item found:', item);
-                return false;
-            }
-            return item.toLowerCase().includes(searchQuery.toLowerCase());
-        });
+        return safeItemsToFilter.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
     }, []);
 
     // Calculate filtered items safely
     const getFilteredItems = useCallback(() => {
         try {
+            if (!Array.isArray(internalItems)) {
+                console.warn('internalItems is not an array in getFilteredItems');
+                return [];
+            }
             return filterItems(internalItems, query);
         } catch (error) {
             console.error('Error filtering items:', error);
@@ -142,7 +142,8 @@ const Combobox: React.FC<ComboboxProps> = ({
         isOpen,
         filteredItemsLength: filteredItems.length,
         internalItemsLength: internalItems.length,
-        query
+        query,
+        filteredItems
     });
 
     return (
@@ -150,6 +151,7 @@ const Combobox: React.FC<ComboboxProps> = ({
             {safeLabel && <label className="block text-sm font-medium text-gray-700 mb-1">{safeLabel}</label>}
             <div className={`relative ${!isValid ? 'ring-2 ring-destructive rounded-md' : ''}`}>
                 <Command
+                    ref={commandRef}
                     className="rounded-lg border border-input"
                     onKeyDown={handleKeyDown}
                 >
@@ -173,7 +175,7 @@ const Combobox: React.FC<ComboboxProps> = ({
                         )}
                     </div>
 
-                    {isOpen && filteredItems.length > 0 && (
+                    {isOpen && Array.isArray(filteredItems) && filteredItems.length > 0 && (
                         <CommandList>
                             {filteredItems.slice(0, 10).map((item, index) => (
                                 <CommandItem
@@ -187,7 +189,7 @@ const Combobox: React.FC<ComboboxProps> = ({
                         </CommandList>
                     )}
                     
-                    {isOpen && filteredItems.length === 0 && !isLoading && (
+                    {isOpen && (!Array.isArray(filteredItems) || filteredItems.length === 0) && !isLoading && (
                         <CommandList>
                             <CommandEmpty>No ingredients found.</CommandEmpty>
                         </CommandList>
