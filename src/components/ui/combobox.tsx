@@ -22,11 +22,24 @@ const Combobox: React.FC<ComboboxProps> = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
+    const [internalItems, setInternalItems] = useState<string[]>([]);
 
     // Ensure values are never undefined
-    const safeValue = value || "";
-    const safeItems = Array.isArray(items) ? items : [];
-    const safeLabel = label || "";
+    const safeValue = typeof value === 'string' ? value : '';
+    const safeLabel = typeof label === 'string' ? label : '';
+
+    // Update internal items when props change
+    useEffect(() => {
+        const safeItems = Array.isArray(items) ? items : [];
+        setInternalItems(safeItems);
+        
+        console.log('Combobox items updated:', {
+            itemsType: typeof items,
+            isArray: Array.isArray(items),
+            length: safeItems.length,
+            sample: safeItems.slice(0, 3)
+        });
+    }, [items]);
 
     // Update query when value changes from parent
     useEffect(() => {
@@ -35,8 +48,16 @@ const Combobox: React.FC<ComboboxProps> = ({
 
     // Use useCallback to memoize the filter function
     const filterItems = useCallback((itemsToFilter: string[], searchQuery: string) => {
-        // Ensure itemsToFilter is an array before attempting to filter
+        console.log('Filtering items:', {
+            itemsToFilterType: typeof itemsToFilter,
+            isArray: Array.isArray(itemsToFilter),
+            searchQueryType: typeof searchQuery,
+            itemsLength: itemsToFilter?.length || 0
+        });
+        
+        // Guarantee itemsToFilter is an array
         if (!Array.isArray(itemsToFilter)) {
+            console.warn('filterItems received non-array items:', itemsToFilter);
             return [];
         }
         
@@ -46,23 +67,42 @@ const Combobox: React.FC<ComboboxProps> = ({
         
         if (searchQuery.length === 1) {
             return itemsToFilter.filter(item => {
-                if (!item || typeof item !== 'string') return false;
+                if (typeof item !== 'string') {
+                    console.warn('Non-string item found:', item);
+                    return false;
+                }
                 return item.toLowerCase().startsWith(searchQuery.toLowerCase());
             });
         }
         
         return itemsToFilter.filter(item => {
-            if (!item || typeof item !== 'string') return false;
+            if (typeof item !== 'string') {
+                console.warn('Non-string item found:', item);
+                return false;
+            }
             return item.toLowerCase().includes(searchQuery.toLowerCase());
         });
     }, []);
 
-    const filteredItems = filterItems(safeItems, query);
+    // Calculate filtered items safely
+    const getFilteredItems = useCallback(() => {
+        try {
+            return filterItems(internalItems, query);
+        } catch (error) {
+            console.error('Error filtering items:', error);
+            return [];
+        }
+    }, [filterItems, internalItems, query]);
+
+    const filteredItems = getFilteredItems();
 
     // Safe selection handler that prevents the undefined issue
     const handleSelect = useCallback((selectedItem: string | undefined | null) => {
+        console.log('handleSelect called with:', selectedItem);
+        
         // Handle when selectedItem is undefined or null
         if (selectedItem === undefined || selectedItem === null) {
+            console.log('handleSelect: selectedItem is undefined/null, using empty string');
             onValueChange("");
             setIsOpen(false);
             return;
@@ -70,6 +110,7 @@ const Combobox: React.FC<ComboboxProps> = ({
 
         // Ensure selectedItem is always a string
         const safeSelectedItem = String(selectedItem);
+        console.log('handleSelect: setting value to', safeSelectedItem);
         setQuery(safeSelectedItem);
         onValueChange(safeSelectedItem);
         setIsOpen(false);
@@ -77,14 +118,32 @@ const Combobox: React.FC<ComboboxProps> = ({
 
     // Handle Enter key press safely
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        console.log('handleKeyDown:', e.key);
         if (e.key === 'Enter') {
             e.preventDefault(); // Prevent form submission
+            console.log('Enter pressed, current query:', query);
             if (query) {
                 onValueChange(query);
             }
             setIsOpen(false);
         }
     };
+
+    const handleInputChange = (newQuery: string) => {
+        console.log('handleInputChange:', newQuery);
+        // Ensure newQuery is never undefined
+        const safeNewQuery = typeof newQuery === 'string' ? newQuery : '';
+        setQuery(safeNewQuery);
+        onValueChange(safeNewQuery);
+        setIsOpen(true);
+    };
+
+    console.log('Combobox rendering:', {
+        isOpen,
+        filteredItemsLength: filteredItems.length,
+        internalItemsLength: internalItems.length,
+        query
+    });
 
     return (
         <div className="w-full">
@@ -98,13 +157,7 @@ const Combobox: React.FC<ComboboxProps> = ({
                         <CommandInput
                             placeholder="Search ingredients..."
                             value={query}
-                            onValueChange={(newQuery) => {
-                                // Ensure newQuery is never undefined
-                                const safeNewQuery = newQuery ?? "";
-                                setQuery(safeNewQuery);
-                                onValueChange(safeNewQuery);
-                                setIsOpen(true);
-                            }}
+                            onValueChange={handleInputChange}
                             onBlur={() => {
                                 setTimeout(() => {
                                     setIsOpen(false);
@@ -120,23 +173,23 @@ const Combobox: React.FC<ComboboxProps> = ({
                         )}
                     </div>
 
-                    {isOpen && (
+                    {isOpen && filteredItems.length > 0 && (
                         <CommandList>
-                            {filteredItems.length === 0 && !isLoading ? (
-                                <CommandEmpty>No ingredients found.</CommandEmpty>
-                            ) : (
-                                <>
-                                    {Array.isArray(filteredItems) && filteredItems.slice(0, 10).map((item, index) => (
-                                        <CommandItem
-                                            key={`${item}-${index}`}
-                                            value={item || ""}
-                                            onSelect={handleSelect}
-                                        >
-                                            {item}
-                                        </CommandItem>
-                                    ))}
-                                </>
-                            )}
+                            {filteredItems.slice(0, 10).map((item, index) => (
+                                <CommandItem
+                                    key={`${item}-${index}`}
+                                    value={item}
+                                    onSelect={handleSelect}
+                                >
+                                    {item}
+                                </CommandItem>
+                            ))}
+                        </CommandList>
+                    )}
+                    
+                    {isOpen && filteredItems.length === 0 && !isLoading && (
+                        <CommandList>
+                            <CommandEmpty>No ingredients found.</CommandEmpty>
                         </CommandList>
                     )}
                 </Command>
