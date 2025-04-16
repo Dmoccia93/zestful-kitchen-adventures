@@ -19,7 +19,7 @@ interface Ingredient {
 const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueChange, label }) => {
     const [matchingIngredients, setMatchingIngredients] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    
+
     // Debounced search function
     const debouncedSearch = useCallback(
         async (query: string) => {
@@ -27,7 +27,7 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
                 setMatchingIngredients([]);
                 return;
             }
-            
+
             setIsLoading(true);
             try {
                 const ingredients = await searchIngredients(query);
@@ -47,7 +47,7 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
         },
         []
     );
-    
+
     // Update matching ingredients when value changes
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -58,10 +58,10 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
                 setMatchingIngredients([]);
             }
         }, 300);
-        
+
         return () => clearTimeout(timeoutId);
     }, [value, debouncedSearch]);
-    
+
     // Safely handle value changes
     const handleValueChange = (newValue: string) => {
         try {
@@ -72,9 +72,12 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
             console.error("Error in handleValueChange:", error);
         }
     };
-    
+
+    console.log("IngredientCombobox - Initial state:", matchingIngredients); // Log initial state
+
     return (
         <ErrorBoundary>
+            {console.log("IngredientCombobox - Rendering with value:", value, "and matchingIngredients:", matchingIngredients)}
             <Combobox
                 value={value || ""}
                 onValueChange={handleValueChange}
