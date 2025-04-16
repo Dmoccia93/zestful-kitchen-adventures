@@ -65,35 +65,11 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, children, ...props }, ref) => {
-  const listRef = React.useRef(null); // Add this ref
-  React.useEffect(() => {
-    console.log("CommandList - ref:", ref.current); // Log the forwarded ref
-    console.log("CommandList - props:", props); // Log props
-    console.log("CommandList - children:", children); // Log children
-
-    if (listRef.current) {
-      console.log("CommandList - children type:", typeof children);
-      React.Children.forEach(children, child => {
-        console.log("CommandList - child:", child);
-        console.log("CommandList - child type:", typeof child);
-        if (React.isValidElement(child)) {
-          console.log("CommandList - child props:", child.props); // Log child props
-          console.log("CommandList - child ref:", child.ref); // Log child ref
-        }
-      });
-      // Add a log right before Q() is called (if possible to identify the call here)
-      // This part is difficult to pinpoint without knowing the exact code of Q()
-      // If you see a function call that seems to be related to selecting items,
-      // add a log just before it. For example:
-      // console.log("CommandList - About to call the item selection function");
-      // yourItemSelectionFunction();
-    }
-  }, [children, props, ref]);
-
+>(({ className, ...props }, ref) => {
+  console.log("CommandList - Rendering with props:", props);
   return (
     <CommandPrimitive.List
-      ref={listRef} // Use the local listRef instead of the forwarded ref
+      ref={ref}
       className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
       {...props}
     />
