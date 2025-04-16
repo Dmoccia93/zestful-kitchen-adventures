@@ -30,8 +30,11 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
             setIsLoading(true);
             try {
                 const ingredients = await searchIngredients(query);
+                console.log("API Response:", ingredients); // Log the raw response
                 if (Array.isArray(ingredients)) {
+                    console.log("Ingredients before mapping:", ingredients); // Log before mapping
                     const ingredientNames = ingredients.map((ingredient: Ingredient) => ingredient.name);
+                    console.log("ingredientNames before setState:", ingredientNames); // Log before setState
                     setMatchingIngredients(ingredientNames);
                 } else {
                     console.error("Invalid response format:", ingredients);
