@@ -4,9 +4,7 @@ import { searchIngredients } from '../services/spoonacularService';
 import ErrorBoundary from './ErrorBoundary';
 
 interface IngredientComboboxProps {
-    value: string;
-    onValueChange: (value: string) => void;
-    label?: string;
+    onRecipesGenerated: (recipes: MockRecipe[]) => void; // Callback to pass recipes
 }
 
 interface Ingredient {
@@ -15,52 +13,28 @@ interface Ingredient {
     image: string | null;
 }
 
-interface Recipe {
+interface MockRecipe {
     id: number;
     title: string;
-    image: string;
-    imageType: string;
+    ingredients: string[]; // Array of ingredient names
 }
 
-const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueChange, label }) => {
+const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ onRecipesGenerated }) => {
     const [matchingIngredients, setMatchingIngredients] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedIngredient, setSelectedIngredient] = useState<string>("");
 
-    // Mock API response (using the provided structure)
-    const mockApiResponse: Recipe[] = [
-        {
-            "id": 716429,
-            "title": "Pasta with Garlic, Scallions, Cauliflower & Breadcrumbs",
-            "image": "https://spoonacular.com/recipeImages/716429-556x370.jpg",
-            "imageType": "jpg"
-        },
-        {
-            "id": 640940,
-            "title": "Garlic Butter Shrimp and Asparagus",
-            "image": "https://spoonacular.com/recipeImages/640940-556x370.jpg",
-            "imageType": "jpg"
-        },
-        {
-            "id": 715497,
-            "title": "Cauliflower Pizza Crust (Low Carb, Gluten-Free)",
-            "image": "https://spoonacular.com/recipeImages/715497-556x370.jpg",
-            "imageType": "jpg"
-        },
-        {
-            "id": 782601,
-            "title": "Red Kidney Bean Curry",
-            "image": "https://spoonacular.com/recipeImages/782601-556x370.jpg",
-            "imageType": "jpg"
-        },
-        {
-            "id": 715547,
-            "title": "Easy Creamy Broccoli Soup (Low Carb)",
-            "image": "https://spoonacular.com/recipeImages/715547-556x370.jpg",
-            "imageType": "jpg"
-        }
+    // Mock recipes data
+    const mockRecipes: MockRecipe[] = [
+        { id: 1, title: "Chicken Salad", ingredients: ["chicken", "mayo", "celery"] },
+        { id: 2, title: "Chicken Soup", ingredients: ["chicken", "carrots", "noodles"] },
+        { id: 3, title: "Beef Stew", ingredients: ["beef", "potatoes", "carrots"] },
+        { id: 4, title: "Pasta Carbonara", ingredients: ["pasta", "eggs", "bacon"] },
+        { id: 5, title: "Tomato Soup", ingredients: ["tomato", "bread"] },
+        { id: 6, title: "Beef Tacos", ingredients: ["beef", "tomato", "onion"] },
     ];
 
-    const useMockData = true; // Set to true to use mock data, false to use API
+    const useMockData = true; // Set to true to use mock data
 
     // Debounced search function
     const debouncedSearch = useCallback(
@@ -72,34 +46,34 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
 
             setIsLoading(true);
             try {
-                let ingredients: Recipe[] = [];
+                let ingredients: string[] = []; // Change to string[]
                 if (useMockData) {
-                    // Filter mock data based on query (using title for simplicity)
-                    ingredients = mockApiResponse.filter(recipe =>
-                        recipe.title.toLowerCase().includes(query.toLowerCase())
-                    );
+                    // Filter mock recipes based on query
+                    ingredients = mockRecipes
+                        .filter(recipe => recipe.ingredients.some(ing => ing.toLowerCase().includes(query.toLowerCase())))
+                        .map(recipe => recipe.title); // Extract titles
                     // Simulate API latency
                     await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
-                    ingredients = await searchIngredients(query);
+                    // This part would need adaptation to work with your actual API response
+                    // Example: ingredients = (await searchIngredients(query)).map(item => item.name);
+                    ingredients = []; // Placeholder, replace with API call
                 }
 
                 if (Array.isArray(ingredients)) {
-                    // Extract the 'title' from the API response
-                    const ingredientNames = ingredients.map(recipe => recipe.title);
-                    setMatchingIngredients(ingredientNames);
+                    setMatchingIngredients(ingredients);
                 } else {
-                    console.error("IngredientCombobox - Invalid response format:", ingredients);
+                    console.error("Invalid response format:", ingredients);
                     setMatchingIngredients([]);
                 }
             } catch (error) {
-                console.error("IngredientCombobox - Error in ingredient search:", error);
+                console.error("Error in ingredient search:", error);
                 setMatchingIngredients([]);
             } finally {
                 setIsLoading(false);
             }
         },
-        [useMockData] // Add useMockData as a dependency
+        [useMockData]
     );
 
     // Update matching ingredients when value changes
@@ -119,12 +93,18 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
     // Safely handle value changes
     const handleValueChange = (newValue: string) => {
         try {
-            // Ensure we pass a string to the parent component
             const safeValue = typeof newValue === 'string' ? newValue : '';
             onValueChange(safeValue);
         } catch (error) {
             console.error("Error in handleValueChange:", error);
         }
+    };
+
+    const handleGenerateRecipes = () => {
+        const recipes = mockRecipes.filter(recipe =>
+            recipe.ingredients.some(ing => ing.toLowerCase().includes(selectedIngredient.toLowerCase()))
+        );
+        onRecipesGenerated(recipes); // Pass filtered recipes to parent
     };
 
     return (
@@ -133,10 +113,11 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
                 value={value || ""}
                 onValueChange={handleValueChange}
                 items={matchingIngredients}
-                label={label}
+                label="Search for ingredients"
                 isValid={true}
                 isLoading={isLoading}
             />
+            <button onClick={handleGenerateRecipes}>Generate Recipes</button>
         </ErrorBoundary>
     );
 };
