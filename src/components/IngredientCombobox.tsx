@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Combobox from './ui/combobox';
 import { searchIngredients } from '../services/spoonacularService';
@@ -30,14 +31,15 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
             setIsLoading(true);
             try {
                 const ingredients = await searchIngredients(query);
-                console.log("API Response:", ingredients); // Log the raw response
-                if (Array.isArray(ingredients)) {
-                    console.log("Ingredients before mapping:", ingredients); // Log before mapping
-                    const ingredientNames = ingredients.map((ingredient: Ingredient) => ingredient.name);
-                    console.log("ingredientNames before setState:", ingredientNames); // Log before setState
+                
+                // Ensure ingredients is an array before mapping
+                if (Array.isArray(ingredients) && ingredients.length > 0) {
+                    const ingredientNames = ingredients
+                        .filter((ingredient: Ingredient) => ingredient && ingredient.name)
+                        .map((ingredient: Ingredient) => ingredient.name);
+                    
                     setMatchingIngredients(ingredientNames);
                 } else {
-                    console.error("Invalid response format:", ingredients);
                     setMatchingIngredients([]);
                 }
             } catch (error) {
@@ -75,22 +77,15 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
         }
     };
 
-    let itemsToPass = [];
-    if (Array.isArray(matchingIngredients)) {
-        itemsToPass = [...matchingIngredients]; // Defensive copy
-    } else {
-        console.error("matchingIngredients is not an array!", matchingIngredients);
-        itemsToPass = []; // Pass an empty array to prevent errors
-    }
-
-    console.log("IngredientCombobox - Data being passed to Combobox:", itemsToPass);
+    // Ensure matchingIngredients is always a valid array
+    const safeIngredients = Array.isArray(matchingIngredients) ? matchingIngredients : [];
 
     return (
         <ErrorBoundary>
             <Combobox
                 value={value || ""}
                 onValueChange={handleValueChange}
-                items={itemsToPass} // Use the safe array
+                items={safeIngredients}
                 label={label}
                 isValid={true}
                 isLoading={isLoading}
