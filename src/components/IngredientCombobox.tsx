@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Combobox from './ui/combobox';
 import { searchIngredients } from '../services/spoonacularService';
@@ -73,15 +72,22 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
         }
     };
 
-    console.log("IngredientCombobox - Initial state:", matchingIngredients); // Log initial state
+    let itemsToPass = [];
+    if (Array.isArray(matchingIngredients)) {
+        itemsToPass = [...matchingIngredients]; // Defensive copy
+    } else {
+        console.error("matchingIngredients is not an array!", matchingIngredients);
+        itemsToPass = []; // Pass an empty array to prevent errors
+    }
+
+    console.log("IngredientCombobox - Data being passed to Combobox:", itemsToPass);
 
     return (
         <ErrorBoundary>
-            {console.log("IngredientCombobox - Rendering with value:", value, "and matchingIngredients:", matchingIngredients)}
             <Combobox
                 value={value || ""}
                 onValueChange={handleValueChange}
-                items={matchingIngredients}
+                items={itemsToPass} // Use the safe array
                 label={label}
                 isValid={true}
                 isLoading={isLoading}
