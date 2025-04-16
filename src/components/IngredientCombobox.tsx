@@ -1,10 +1,13 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Combobox from './ui/combobox';
 import { searchIngredients } from '../services/spoonacularService';
 import ErrorBoundary from './ErrorBoundary';
 
 interface IngredientComboboxProps {
-    onRecipesGenerated: (recipes: MockRecipe[]) => void; // Callback to pass recipes
+    value: string;
+    onValueChange: (value: string) => void;
+    label?: string;
 }
 
 interface Ingredient {
@@ -13,57 +16,40 @@ interface Ingredient {
     image: string | null;
 }
 
-interface MockRecipe {
-    id: number;
-    title: string;
-    ingredients: string[]; // Array of ingredient names
-}
-
-const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ onRecipesGenerated }) => {
+const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueChange, label }) => {
     const [matchingIngredients, setMatchingIngredients] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedIngredient, setSelectedIngredient] = useState<string>("");
 
-    // Mock recipes data
-    const mockRecipes: MockRecipe[] = [
-        { id: 1, title: "Chicken Salad", ingredients: ["chicken", "mayo", "celery"] },
-        { id: 2, title: "Chicken Soup", ingredients: ["chicken", "carrots", "noodles"] },
-        { id: 3, title: "Beef Stew", ingredients: ["beef", "potatoes", "carrots"] },
-        { id: 4, title: "Pasta Carbonara", ingredients: ["pasta", "eggs", "bacon"] },
-        { id: 5, title: "Tomato Soup", ingredients: ["tomato", "bread"] },
-        { id: 6, title: "Beef Tacos", ingredients: ["beef", "tomato", "onion"] },
-    ];
-
-    const useMockData = true; // Set to true to use mock data
-
-    // Debounced search function
+    // Debounced search function with improved error handling
     const debouncedSearch = useCallback(
         async (query: string) => {
-            if (!query || query.length < 2) {
+            if (!query || typeof query !== 'string' || query.length < 2) {
                 setMatchingIngredients([]);
                 return;
             }
 
             setIsLoading(true);
             try {
-                let ingredients: string[] = []; // Change to string[]
-                if (useMockData) {
-                    // Filter mock recipes based on query
-                    ingredients = mockRecipes
-                        .filter(recipe => recipe.ingredients.some(ing => ing.toLowerCase().includes(query.toLowerCase())))
-                        .map(recipe => recipe.title); // Extract titles
-                    // Simulate API latency
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                const ingredients = await searchIngredients(query);
+                console.log('API response:', ingredients);
+                
+                // More strict validation of the returned data
+                if (Array.isArray(ingredients) && ingredients.length > 0) {
+                    const ingredientNames = ingredients
+                        .filter((ingredient: Ingredient) => 
+                            ingredient && 
+                            typeof ingredient === 'object' && 
+                            'name' in ingredient && 
+                            typeof ingredient.name === 'string'
+                        )
+                        .map((ingredient: Ingredient) => ingredient.name);
+                    
+                    console.log('Transformed ingredient names:', ingredientNames);
+                    
+                    // Ensure we always set a valid array
+                    setMatchingIngredients(Array.isArray(ingredientNames) ? ingredientNames : []);
                 } else {
-                    // This part would need adaptation to work with your actual API response
-                    // Example: ingredients = (await searchIngredients(query)).map(item => item.name);
-                    ingredients = []; // Placeholder, replace with API call
-                }
-
-                if (Array.isArray(ingredients)) {
-                    setMatchingIngredients(ingredients);
-                } else {
-                    console.error("Invalid response format:", ingredients);
+                    console.log('No ingredients found or invalid response, setting empty array');
                     setMatchingIngredients([]);
                 }
             } catch (error) {
@@ -73,15 +59,15 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ onRecipesGenera
                 setIsLoading(false);
             }
         },
-        [useMockData]
+        []
     );
 
     // Update matching ingredients when value changes
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            const safeQuery = typeof value === "string" ? value : "";
-            if (safeQuery.length >= 2) {
-                debouncedSearch(safeQuery);
+            // Validate value before searching
+            if (typeof value === "string" && value.length >= 2) {
+                debouncedSearch(value);
             } else {
                 setMatchingIngredients([]);
             }
@@ -93,31 +79,41 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ onRecipesGenera
     // Safely handle value changes
     const handleValueChange = (newValue: string) => {
         try {
+            // Ensure we pass a valid string to the parent component
             const safeValue = typeof newValue === 'string' ? newValue : '';
+            console.log('IngredientCombobox handleValueChange:', safeValue);
             onValueChange(safeValue);
         } catch (error) {
             console.error("Error in handleValueChange:", error);
+            // Fallback to empty string on error
+            onValueChange('');
         }
     };
 
-    const handleGenerateRecipes = () => {
-        const recipes = mockRecipes.filter(recipe =>
-            recipe.ingredients.some(ing => ing.toLowerCase().includes(selectedIngredient.toLowerCase()))
-        );
-        onRecipesGenerated(recipes); // Pass filtered recipes to parent
-    };
+    // Ensure we never pass undefined or null to the Combobox component
+    const safeValue = typeof value === 'string' ? value : '';
+    
+    // Explicitly guarantee matchingIngredients is an array before passing it
+    const safeIngredients = Array.isArray(matchingIngredients) ? matchingIngredients : [];
+    
+    console.log('IngredientCombobox rendering with:', {
+        safeValue,
+        matchingIngredientsType: typeof matchingIngredients,
+        isArray: Array.isArray(matchingIngredients),
+        safeIngredientsLength: safeIngredients.length,
+        safeIngredients
+    });
 
     return (
         <ErrorBoundary>
             <Combobox
-                value={value || ""}
+                value={safeValue}
                 onValueChange={handleValueChange}
-                items={matchingIngredients}
-                label="Search for ingredients"
+                items={safeIngredients}
+                label={label || ""}
                 isValid={true}
                 isLoading={isLoading}
             />
-            <button onClick={handleGenerateRecipes}>Generate Recipes</button>
         </ErrorBoundary>
     );
 };
