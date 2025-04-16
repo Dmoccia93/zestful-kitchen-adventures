@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Combobox from './ui/combobox';
 import { searchIngredients } from '../services/spoonacularService';
@@ -20,36 +19,47 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
     const [matchingIngredients, setMatchingIngredients] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Debounced search function with improved error handling
+    // Mock API response
+    const mockIngredients: Ingredient[] = [
+        { id: 1, name: "Chicken Breast", image: null },
+        { id: 2, name: "Ground Chicken", image: null },
+        { id: 3, name: "Chicken Thigh", image: null },
+        { id: 4, name: "Beef Steak", image: null },
+        { id: 5, name: "Ground Beef", image: null },
+        { id: 6, name: "Pasta", image: null },
+        { id: 7, name: "Rice", image: null },
+        { id: 8, name: "Tomato", image: null },
+    ];
+
+    const useMockData = true; // Set to true to use mock data, false to use API
+
+    // Debounced search function
     const debouncedSearch = useCallback(
         async (query: string) => {
-            if (!query || typeof query !== 'string' || query.length < 2) {
+            if (!query || query.length < 2) {
                 setMatchingIngredients([]);
                 return;
             }
 
             setIsLoading(true);
             try {
-                const ingredients = await searchIngredients(query);
-                console.log('API response:', ingredients);
-                
-                // More strict validation of the returned data
-                if (Array.isArray(ingredients) && ingredients.length > 0) {
-                    const ingredientNames = ingredients
-                        .filter((ingredient: Ingredient) => 
-                            ingredient && 
-                            typeof ingredient === 'object' && 
-                            'name' in ingredient && 
-                            typeof ingredient.name === 'string'
-                        )
-                        .map((ingredient: Ingredient) => ingredient.name);
-                    
-                    console.log('Transformed ingredient names:', ingredientNames);
-                    
-                    // Ensure we always set a valid array
-                    setMatchingIngredients(Array.isArray(ingredientNames) ? ingredientNames : []);
+                let ingredients: Ingredient[] = [];
+                if (useMockData) {
+                    // Filter mock data based on query
+                    ingredients = mockIngredients.filter(ingredient =>
+                        ingredient.name.toLowerCase().includes(query.toLowerCase())
+                    );
+                    // Simulate API latency
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
-                    console.log('No ingredients found or invalid response, setting empty array');
+                    ingredients = await searchIngredients(query);
+                }
+
+                if (Array.isArray(ingredients)) {
+                    const ingredientNames = ingredients.map((ingredient: Ingredient) => ingredient.name);
+                    setMatchingIngredients(ingredientNames);
+                } else {
+                    console.error("Invalid response format:", ingredients);
                     setMatchingIngredients([]);
                 }
             } catch (error) {
@@ -59,15 +69,15 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
                 setIsLoading(false);
             }
         },
-        []
+        [useMockData] // Add useMockData as a dependency
     );
 
     // Update matching ingredients when value changes
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            // Validate value before searching
-            if (typeof value === "string" && value.length >= 2) {
-                debouncedSearch(value);
+            const safeQuery = typeof value === "string" ? value : "";
+            if (safeQuery.length >= 2) {
+                debouncedSearch(safeQuery);
             } else {
                 setMatchingIngredients([]);
             }
@@ -79,38 +89,21 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
     // Safely handle value changes
     const handleValueChange = (newValue: string) => {
         try {
-            // Ensure we pass a valid string to the parent component
+            // Ensure we pass a string to the parent component
             const safeValue = typeof newValue === 'string' ? newValue : '';
-            console.log('IngredientCombobox handleValueChange:', safeValue);
             onValueChange(safeValue);
         } catch (error) {
             console.error("Error in handleValueChange:", error);
-            // Fallback to empty string on error
-            onValueChange('');
         }
     };
-
-    // Ensure we never pass undefined or null to the Combobox component
-    const safeValue = typeof value === 'string' ? value : '';
-    
-    // Explicitly guarantee matchingIngredients is an array before passing it
-    const safeIngredients = Array.isArray(matchingIngredients) ? matchingIngredients : [];
-    
-    console.log('IngredientCombobox rendering with:', {
-        safeValue,
-        matchingIngredientsType: typeof matchingIngredients,
-        isArray: Array.isArray(matchingIngredients),
-        safeIngredientsLength: safeIngredients.length,
-        safeIngredients
-    });
 
     return (
         <ErrorBoundary>
             <Combobox
-                value={safeValue}
+                value={value || ""}
                 onValueChange={handleValueChange}
-                items={safeIngredients}
-                label={label || ""}
+                items={matchingIngredients}
+                label={label}
                 isValid={true}
                 isLoading={isLoading}
             />
