@@ -45,6 +45,8 @@ export function useCombobox({ value, onValueChange, items }: UseComboboxProps) {
     // Use useCallback to memoize the filter function
     const filterItems = useCallback((itemsToFilter: string[], searchQuery: string) => {
         console.log('useCombobox - filterItems called with:', {
+            itemsToFilter,
+            searchQuery,
             itemsToFilterType: typeof itemsToFilter,
             isArray: Array.isArray(itemsToFilter),
             searchQueryType: typeof searchQuery,
@@ -59,16 +61,25 @@ export function useCombobox({ value, onValueChange, items }: UseComboboxProps) {
 
         // Additional safety - filter out non-string items
         const safeItemsToFilter = itemsToFilter.filter(item => typeof item === 'string');
+        console.log('useCombobox - filterItems - safeItemsToFilter:', safeItemsToFilter);
+
+        let result: string[];
 
         if (!searchQuery) {
-            return safeItemsToFilter.slice(0, 100);
+            result = safeItemsToFilter.slice(0, 100);
+            console.log('useCombobox - filterItems - no searchQuery, result:', result);
+            return result;
         }
 
         if (searchQuery.length === 1) {
-            return safeItemsToFilter.filter(item => item.toLowerCase().startsWith(searchQuery.toLowerCase()));
+            result = safeItemsToFilter.filter(item => item.toLowerCase().startsWith(searchQuery.toLowerCase()));
+            console.log('useCombobox - filterItems - searchQuery.length === 1, result:', result);
+            return result;
         }
 
-        return safeItemsToFilter.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
+        result = safeItemsToFilter.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
+        console.log('useCombobox - filterItems - searchQuery.length > 1, result:', result);
+        return result;
     }, []);
 
     // Calculate filtered items safely
@@ -127,8 +138,20 @@ export function useCombobox({ value, onValueChange, items }: UseComboboxProps) {
         const safeNewQuery = typeof newQuery === 'string' ? newQuery : '';
         setQuery(safeNewQuery);
         onValueChange(safeNewQuery);
+        console.log('useCombobox - handleInputChange - setIsOpen(true)');
         setIsOpen(true);
     };
+
+    console.log('useCombobox - Return values:', {
+        isOpen,
+        setIsOpen,
+        query,
+        filteredItems,
+        commandRef,
+        handleSelect,
+        handleKeyDown,
+        handleInputChange
+    });
 
     return {
         isOpen,
