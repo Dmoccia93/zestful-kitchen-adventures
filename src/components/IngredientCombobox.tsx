@@ -31,42 +31,26 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
             setIsLoading(true);
             try {
                 const ingredients = await searchIngredients(query);
-                console.log('API response type:', typeof ingredients);
-                console.log('API response isArray:', Array.isArray(ingredients));
-                console.log('API response length:', ingredients?.length || 0);
-                console.log('API sample items:', ingredients?.slice(0, 3));
+                console.log('API response:', ingredients);
                 
-                // Validate the API response strictly
-                if (!ingredients) {
-                    console.log('ingredients is null/undefined, setting empty array');
-                    setMatchingIngredients([]);
-                    return;
-                }
-                
-                if (!Array.isArray(ingredients)) {
-                    console.warn('API did not return an array:', ingredients);
-                    setMatchingIngredients([]);
-                    return;
-                }
-                
-                // Extract and validate each ingredient name
-                const ingredientNames = ingredients
-                    .filter((ingredient): ingredient is Ingredient => 
-                        ingredient && 
-                        typeof ingredient === 'object' && 
-                        'name' in ingredient && 
-                        typeof ingredient.name === 'string'
-                    )
-                    .map((ingredient) => ingredient.name);
-                
-                console.log('Extracted ingredient names:', ingredientNames);
-                
-                // Final validation before setting state
-                if (!Array.isArray(ingredientNames)) {
-                    console.warn('ingredientNames is not an array:', ingredientNames);
-                    setMatchingIngredients([]);
+                // More strict validation of the returned data
+                if (Array.isArray(ingredients) && ingredients.length > 0) {
+                    const ingredientNames = ingredients
+                        .filter((ingredient: Ingredient) => 
+                            ingredient && 
+                            typeof ingredient === 'object' && 
+                            'name' in ingredient && 
+                            typeof ingredient.name === 'string'
+                        )
+                        .map((ingredient: Ingredient) => ingredient.name);
+                    
+                    console.log('Transformed ingredient names:', ingredientNames);
+                    
+                    // Ensure we always set a valid array
+                    setMatchingIngredients(Array.isArray(ingredientNames) ? ingredientNames : []);
                 } else {
-                    setMatchingIngredients(ingredientNames);
+                    console.log('No ingredients found or invalid response, setting empty array');
+                    setMatchingIngredients([]);
                 }
             } catch (error) {
                 console.error("Error in ingredient search:", error);
@@ -117,7 +101,7 @@ const IngredientCombobox: React.FC<IngredientComboboxProps> = ({ value, onValueC
         matchingIngredientsType: typeof matchingIngredients,
         isArray: Array.isArray(matchingIngredients),
         safeIngredientsLength: safeIngredients.length,
-        safeIngredients: safeIngredients.slice(0, 3)
+        safeIngredients
     });
 
     return (
