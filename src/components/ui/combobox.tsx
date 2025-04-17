@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
-import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from './command';
+
+import React, { useRef } from 'react';
+import { Command } from './command';
 import { useCombobox } from '@/hooks/useCombobox';
 import ComboboxInput from './combobox/ComboboxInput';
 import ComboboxList from './combobox/ComboboxList';
@@ -21,11 +22,19 @@ const Combobox: React.FC<ComboboxProps> = ({
     isValid = true,
     isLoading = false
 }) => {
-    const listRef = useRef<React.ElementRef<typeof CommandList>>(null); // Ref for CommandList
+    const listRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        console.log("Combobox - useEffect - listRef.current (initial):", listRef.current);
-    }, []);
+    // Add extensive logging to track component lifecycle
+    console.log("Combobox rendering with props:", {
+        value,
+        itemsLength: items?.length || 0,
+        itemsType: typeof items,
+        isArray: Array.isArray(items),
+        label,
+        isValid,
+        isLoading,
+        listRefDefined: !!listRef.current
+    });
 
     const {
         isOpen,
@@ -38,12 +47,14 @@ const Combobox: React.FC<ComboboxProps> = ({
         handleInputChange
     } = useCombobox({ value, onValueChange, items });
 
-    useEffect(() => {
-        console.log("Combobox - useEffect - isOpen:", isOpen);
-        console.log("Combobox - useEffect - query:", query);
-        console.log("Combobox - useEffect - filteredItems:", filteredItems);
-        console.log("Combobox - useEffect - listRef.current:", listRef.current);
-    }, [isOpen, query, filteredItems]);
+    // Log state from useCombobox
+    console.log("useCombobox state:", {
+        isOpen,
+        query,
+        filteredItemsLength: filteredItems?.length || 0,
+        filteredItemsType: typeof filteredItems,
+        filteredItemsIsArray: Array.isArray(filteredItems)
+    });
 
     // Ensure values are never undefined
     const safeLabel = typeof label === 'string' ? label : '';
@@ -67,13 +78,10 @@ const Combobox: React.FC<ComboboxProps> = ({
                     <ComboboxList
                         isOpen={isOpen}
                         isLoading={isLoading}
-                        filteredItems={filteredItems}
+                        filteredItems={filteredItems || []} // Guarantee we always pass an array
                         handleSelect={handleSelect}
-                        listRef={listRef} // Pass the ref to ComboboxList
+                        listRef={listRef}
                     />
-                    {isOpen && listRef.current && ( // Check if listRef.current is defined
-                        console.log("Combobox - CommandList is open and listRef.current is:", listRef.current)
-                    )}
                 </Command>
             </div>
         </div>

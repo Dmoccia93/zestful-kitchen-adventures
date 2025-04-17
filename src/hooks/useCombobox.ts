@@ -13,22 +13,36 @@ export function useCombobox({ value, onValueChange, items }: UseComboboxProps) {
     const [internalItems, setInternalItems] = useState<string[]>([]);
     const commandRef = useRef<HTMLDivElement>(null);
 
-    // Ensure values are never undefined
+    // Ensure value is never undefined
     const safeValue = typeof value === 'string' ? value : '';
 
-    // Update internal items when props change - with additional safety checks
+    // Update internal items when props change with robust type checking
     useEffect(() => {
-        // Defensive check - ensure items is an array before setting state
-        if (items === undefined || items === null) {
+        console.log('useCombobox - items changed:', {
+            itemsType: typeof items,
+            isArray: Array.isArray(items),
+            itemsLength: items?.length || 0,
+            sampleItems: Array.isArray(items) ? items.slice(0, 3) : 'not an array'
+        });
+
+        // Defensive check for items
+        if (!items) {
             console.log('Items is null/undefined, setting empty array');
             setInternalItems([]);
         } else if (!Array.isArray(items)) {
             console.warn('Items is not an array:', items);
             setInternalItems([]);
         } else {
-            // Filter out any non-string values that might have slipped through
-            const safeItems = items.filter(item => typeof item === 'string');
-            console.log('Setting internal items:', safeItems);
+            // Filter out non-string values and ensure all values are strings
+            const safeItems = items
+                .filter(item => item !== undefined && item !== null)
+                .map(item => String(item));
+            
+            console.log('Setting internal items:', {
+                safeItemsLength: safeItems.length,
+                sampleSafeItems: safeItems.slice(0, 3)
+            });
+            
             setInternalItems(safeItems);
         }
     }, [items]);
@@ -38,13 +52,12 @@ export function useCombobox({ value, onValueChange, items }: UseComboboxProps) {
         setQuery(safeValue);
     }, [safeValue]);
 
-    // Use useCallback to memoize the filter function
+    // Memoize the filter function to avoid unnecessary re-renders
     const filterItems = useCallback((itemsToFilter: string[], searchQuery: string) => {
         console.log('Filtering items:', {
-            itemsToFilterType: typeof itemsToFilter,
+            itemsToFilterLength: itemsToFilter?.length || 0,
             isArray: Array.isArray(itemsToFilter),
-            searchQueryType: typeof searchQuery,
-            itemsLength: itemsToFilter?.length || 0
+            searchQuery
         });
         
         // Guarantee itemsToFilter is an array
@@ -53,28 +66,44 @@ export function useCombobox({ value, onValueChange, items }: UseComboboxProps) {
             return [];
         }
         
-        // Additional safety - filter out non-string items
-        const safeItemsToFilter = itemsToFilter.filter(item => typeof item === 'string');
+        // Additional safety - filter out invalid items and ensure all are strings
+        const safeItemsToFilter = itemsToFilter
+            .filter(item => item !== undefined && item !== null)
+            .map(item => String(item));
         
         if (!searchQuery) {
             return safeItemsToFilter.slice(0, 100);
         }
         
+        const lowerCaseQuery = searchQuery.toLowerCase();
+        
         if (searchQuery.length === 1) {
-            return safeItemsToFilter.filter(item => item.toLowerCase().startsWith(searchQuery.toLowerCase()));
+            return safeItemsToFilter.filter(
+                item => typeof item === 'string' && item.toLowerCase().startsWith(lowerCaseQuery)
+            );
         }
         
-        return safeItemsToFilter.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
+        return safeItemsToFilter.filter(
+            item => typeof item === 'string' && item.toLowerCase().includes(lowerCaseQuery)
+        );
     }, []);
 
-    // Calculate filtered items safely
+    // Calculate filtered items with robust error handling
     const getFilteredItems = useCallback(() => {
         try {
             if (!Array.isArray(internalItems)) {
                 console.warn('internalItems is not an array in getFilteredItems');
                 return [];
             }
-            return filterItems(internalItems, query);
+            
+            const result = filterItems(internalItems, query);
+            console.log('Filtered items result:', {
+                resultLength: result.length,
+                resultIsArray: Array.isArray(result),
+                sampleResults: result.slice(0, 3)
+            });
+            
+            return result;
         } catch (error) {
             console.error('Error filtering items:', error);
             return [];
@@ -83,23 +112,22 @@ export function useCombobox({ value, onValueChange, items }: UseComboboxProps) {
 
     const filteredItems = getFilteredItems();
 
-    // Safe selection handler that prevents the undefined issue
-    const handleSelect = useCallback((selectedItem: string | undefined | null) => {
+    // Safe selection handler that prevents undefined issues
+    const handleSelect = useCallback((selectedItem: string) => {
         console.log('handleSelect called with:', selectedItem);
         
-        // Handle when selectedItem is undefined or null
+        // Validate selectedItem before using it
         if (selectedItem === undefined || selectedItem === null) {
             console.log('handleSelect: selectedItem is undefined/null, using empty string');
             onValueChange("");
-            setIsOpen(false);
-            return;
+        } else {
+            // Ensure selectedItem is always a string
+            const safeSelectedItem = String(selectedItem);
+            console.log('handleSelect: setting value to', safeSelectedItem);
+            setQuery(safeSelectedItem);
+            onValueChange(safeSelectedItem);
         }
-
-        // Ensure selectedItem is always a string
-        const safeSelectedItem = String(selectedItem);
-        console.log('handleSelect: setting value to', safeSelectedItem);
-        setQuery(safeSelectedItem);
-        onValueChange(safeSelectedItem);
+        
         setIsOpen(false);
     }, [onValueChange]);
 
