@@ -1,97 +1,80 @@
-import { useState } from "react";
-import NavBar from "@/components/NavBar";
-import Footer from "@/components/Footer";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input"; // Remove this import!
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Search } from "lucide-react";
-import IngredientCombobox from "@/components/IngredientCombobox"; // Ensure correct path!
+import React, { useState } from 'react';
+import IngredientCombobox from '../components/IngredientCombobox';
+import { findRecipesByIngredients, searchIngredients } from '../services/spoonacularService';
 
-const FindRecipe = () => {
-    const [inputMethod, setInputMethod] = useState("manual");
-    const [ingredients, setIngredients] = useState<string[]>([""]); // Simplified state
+const FindRecipe: React.FC = () => {
+    const [ingredients, setIngredients] = useState<string[]>(['']);
+    const [recipeResults, setRecipeResults] = useState([]);
+    const [suggestionResults, setSuggestionResults] = useState<string[]>([]);
+    const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
+    const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
 
-    const handleAddIngredient = () => {
-        setIngredients([...ingredients, ""]); // Add empty string
+    const handleIngredientChange = (index: number, value: string) => {
+        const newIngredients = [...ingredients];
+        newIngredients[index] = value;
+        setIngredients(newIngredients);
+        // Potentially trigger suggestion search here if you still want suggestions
+        // fetchSuggestions(value);
     };
 
-    const handleIngredientChange = (index: number, value: string) => { // Simplified function
-        try {
-            const updatedIngredients = [...ingredients];
-            updatedIngredients[index] = value;
-            setIngredients(updatedIngredients);
-        } catch (error) {
-            console.error("Error updating ingredient:", error);
+    const addIngredientField = () => {
+        setIngredients([...ingredients, '']);
+    };
+
+    const fetchSuggestions = async (query: string) => {
+        if (query.length >= 2) {
+            setIsSearchingSuggestions(true);
+            const suggestions = await searchIngredients(query);
+            setSuggestionResults(suggestions.map(s => s.name));
+            setIsSearchingSuggestions(false);
+        } else {
+            setSuggestionResults([]);
         }
     };
 
-    const handleGenerateRecipe = () => {
-        // This functionality will be implemented later
-        console.log("Generating recipe with ingredients:", ingredients);
+    const handleGenerateRecipes = async () => {
+        setIsGeneratingRecipes(true);
+        const validIngredients = ingredients.filter(ing => ing.trim() !== '');
+        if (validIngredients.length > 0) {
+            const recipes = await findRecipesByIngredients(validIngredients);
+            setRecipeResults(recipes);
+        } else {
+            // Handle case with no ingredients
+            setRecipeResults([]);
+        }
+        setIsGeneratingRecipes(false);
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            handleGenerateRecipes();
+        }
     };
 
     return (
-        <div className="min-h-screen flex flex-col">
-            <NavBar />
-            <main className="flex-grow py-12 px-6 sm:px-8 lg:px-12 bg-background">
-                <div className="max-w-3xl mx-auto">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center text-foreground mt-12">
-                        Add here the ingredients that you have to get a fab recipe
-                    </h1>
-
-                    <div className="mb-8">
-                        <Select value={inputMethod} onValueChange={setInputMethod}>
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select input method" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="manual">Input ingredients manually</SelectItem>
-                                <SelectItem value="image" disabled>
-                                    Share a pic of your fridge - coming soon
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-4 mb-8">
-                        {ingredients.map((ingredient, index) => (
-                            <div key={index} className="flex gap-4">
-                                <div className="flex-grow">
-                                    <IngredientCombobox
-                                        value={ingredient} // Simplified value prop
-                                        onValueChange={(value) => handleIngredientChange(index, value)} // Simplified handler
-                                        label="Ingredient" // Changed label
-                                    />
-                                </div>
-                                {/* REMOVED QUANTITY INPUT */}
-                            </div>
-                        ))}
-                        <Button
-                            variant="outline"
-                            onClick={handleAddIngredient}
-                            className="w-full flex items-center justify-center gap-2"
-                        >
-                            <PlusCircle className="w-5 h-5" />
-                            Add another ingredient
-                        </Button>
-                    </div>
-
-                    <Button
-                        className="w-full py-6 text-lg"
-                        onClick={handleGenerateRecipe}
-                    >
-                        <Search className="w-5 h-5 mr-2" />
-                        Generate Recipe
-                    </Button>
+        <div>
+            {/* ... other components ... */}
+            {ingredients.map((ingredient, index) => (
+                <div key={index}>
+                    <IngredientCombobox
+                        value={ingredient}
+                        onValueChange={(value) => handleIngredientChange(index, value)}
+                        label={`Ingredient ${index + 1}`}
+                        // If you still want suggestions, you'd need to manage the trigger
+                        // and pass down the results.
+                        // triggerSearch={ingredient.length >= 2}
+                        // onSearch={fetchSuggestions}
+                        suggestions={suggestionResults}
+                        isLoading={isSearchingSuggestions}
+                        onKeyDown={handleKeyDown} // Listen for Enter key
+                    />
                 </div>
-            </main>
-            <Footer />
+            ))}
+            <button onClick={addIngredientField}>Add another ingredient</button>
+            <button onClick={handleGenerateRecipes} disabled={isGeneratingRecipes}>
+                {isGeneratingRecipes ? 'Generating...' : 'Generate Recipe'}
+            </button>
+            {/* ... display recipeResults ... */}
         </div>
     );
 };
