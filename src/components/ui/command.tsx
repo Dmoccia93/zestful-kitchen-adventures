@@ -65,7 +65,7 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   console.log("CommandList - Rendering with props:", props);
   return (
     <CommandPrimitive.List
