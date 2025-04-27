@@ -52,25 +52,35 @@ const FindRecipe: React.FC = () => {
 
         try {
             console.log("Sending ingredients to n8n webhook:", validIngredients);
-            
+
             const response = await fetch(WEBHOOK_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                mode: "no-cors",
+                mode: "no-cors", // Keep this if you are encountering CORS issues
                 body: JSON.stringify({
                     ingredients: validIngredients
                 }),
             });
 
-            const responseText = JSON.stringify(response, null, 2);
-            setRawResponse(responseText);
+            if (response.ok) {
+                const responseText = await response.text(); // Get the response body as text
+                setRawResponse(responseText);
 
-            toast({
-                title: "Request sent to n8n",
-                description: "Check the response below",
-            });
+                toast({
+                    title: "Recipe generated",
+                    description: "The recipe is displayed below",
+                });
+            } else {
+                const errorText = await response.text();
+                setRawResponse(`Error from n8n: ${response.status} - ${errorText}`);
+                toast({
+                    title: "Error",
+                    description: `Failed to get recipe from n8n: ${response.status}`,
+                    variant: "destructive",
+                });
+            }
 
             setRecipeResults([]);
             setIsGeneratingRecipes(false);
@@ -96,7 +106,7 @@ const FindRecipe: React.FC = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Find Recipes</h1>
-            
+
             <div className="space-y-4 mb-6">
                 {ingredients.map((ingredient, index) => (
                     <div key={index}>
@@ -109,17 +119,17 @@ const FindRecipe: React.FC = () => {
                         />
                     </div>
                 ))}
-                
+
                 <div className="flex flex-wrap gap-4 mt-4">
-                    <Button 
-                        onClick={addIngredientField} 
+                    <Button
+                        onClick={addIngredientField}
                         variant="outline"
                     >
                         Add another ingredient
                     </Button>
-                    
-                    <Button 
-                        onClick={handleGenerateRecipes} 
+
+                    <Button
+                        onClick={handleGenerateRecipes}
                         disabled={isGeneratingRecipes}
                     >
                         {isGeneratingRecipes ? 'Generating...' : 'Generate Recipe'}
@@ -137,7 +147,7 @@ const FindRecipe: React.FC = () => {
                     </div>
                 )}
             </div>
-            
+
             {recipeResults.length > 0 && (
                 <div>
                     <h2 className="text-2xl font-bold mb-4">Recipe Results</h2>
@@ -145,9 +155,9 @@ const FindRecipe: React.FC = () => {
                         {recipeResults.map(recipe => (
                             <div key={recipe.id} className="border rounded-lg overflow-hidden shadow-md">
                                 {recipe.image && (
-                                    <img 
-                                        src={recipe.image} 
-                                        alt={recipe.title} 
+                                    <img
+                                        src={recipe.image}
+                                        alt={recipe.title}
                                         className="w-full h-48 object-cover"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = "/placeholder.svg";
