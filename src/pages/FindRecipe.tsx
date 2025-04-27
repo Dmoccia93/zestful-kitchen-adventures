@@ -16,7 +16,7 @@ interface Recipe {
     unusedIngredients: any[];
 }
 
-const WEBHOOK_URL = 'http://localhost:5678/webhook-test/generate-recipes';
+const WEBHOOK_URL = 'http://localhost:5678/webhook/generate-recipes';
 
 const FindRecipe: React.FC = () => {
     const [ingredients, setIngredients] = useState<string[]>(['']);
