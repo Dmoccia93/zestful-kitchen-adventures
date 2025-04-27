@@ -1,21 +1,22 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import IngredientCombobox from '../components/IngredientCombobox';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { toast } from "@/hooks/use-toast";
 import { findRecipesByIngredients, searchIngredients } from '../services/spoonacularService';
 
 interface Recipe {
-  id: number;
-  title: string;
-  image: string;
-  usedIngredientCount: number;
-  missedIngredientCount: number;
-  missedIngredients: any[];
-  usedIngredients: any[];
-  unusedIngredients: any[];
+    id: number;
+    title: string;
+    image: string;
+    usedIngredientCount: number;
+    missedIngredientCount: number;
+    missedIngredients: any[];
+    usedIngredients: any[];
+    unusedIngredients: any[];
 }
+
+const WEBHOOK_URL = 'http://localhost:5678/webhook-test/generate-recipes';
 
 const FindRecipe: React.FC = () => {
     const [ingredients, setIngredients] = useState<string[]>(['']);
@@ -23,22 +24,6 @@ const FindRecipe: React.FC = () => {
     const [suggestionResults, setSuggestionResults] = useState<string[]>([]);
     const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
     const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
-    const [webhookUrl, setWebhookUrl] = useState<string>('');
-
-    // Load webhook URL from localStorage on component mount
-    useEffect(() => {
-        const savedWebhookUrl = localStorage.getItem('n8nWebhookUrl');
-        if (savedWebhookUrl) {
-            setWebhookUrl(savedWebhookUrl);
-        }
-    }, []);
-
-    // Save webhook URL to localStorage when it changes
-    useEffect(() => {
-        if (webhookUrl) {
-            localStorage.setItem('n8nWebhookUrl', webhookUrl);
-        }
-    }, [webhookUrl]);
 
     const handleIngredientChange = (index: number, value: string) => {
         const newIngredients = [...ingredients];
@@ -50,30 +35,9 @@ const FindRecipe: React.FC = () => {
         setIngredients([...ingredients, '']);
     };
 
-    const fetchSuggestions = async (query: string) => {
-        if (query.length >= 2) {
-            setIsSearchingSuggestions(true);
-            const suggestions = await searchIngredients(query);
-            setSuggestionResults(suggestions.map(s => s.name));
-            setIsSearchingSuggestions(false);
-        } else {
-            setSuggestionResults([]);
-        }
-    };
-
     const handleGenerateRecipes = async () => {
         setIsGeneratingRecipes(true);
         const validIngredients = ingredients.filter(ing => ing.trim() !== '');
-
-        if (!webhookUrl) {
-            toast({
-                title: "Error",
-                description: "Please enter your n8n webhook URL",
-                variant: "destructive",
-            });
-            setIsGeneratingRecipes(false);
-            return;
-        }
 
         if (validIngredients.length === 0) {
             toast({
@@ -88,28 +52,22 @@ const FindRecipe: React.FC = () => {
         try {
             console.log("Sending ingredients to n8n webhook:", validIngredients);
             
-            const response = await fetch(webhookUrl, {
+            const response = await fetch(WEBHOOK_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                mode: "no-cors", // Add this to handle CORS
+                mode: "no-cors", // Handle CORS
                 body: JSON.stringify({
                     ingredients: validIngredients
                 }),
             });
 
-            // Since we're using no-cors mode, we won't get a proper response back
-            // We'll show a toast to let the user know the request was sent
             toast({
                 title: "Request sent to n8n",
                 description: "Check your n8n workflow for results",
             });
 
-            // For demo purposes, you might want to add a timeout and then show some mock data
-            // In a real implementation, your n8n workflow would need to send data back to your app
-            // through another endpoint or webhook
-            
             // Clear existing recipes while we wait for n8n to process
             setRecipeResults([]);
             
@@ -133,7 +91,7 @@ const FindRecipe: React.FC = () => {
             console.error("Error calling n8n webhook:", error);
             toast({
                 title: "Error",
-                description: "Failed to connect to your n8n webhook. Please check the URL and try again.",
+                description: "Failed to connect to n8n webhook. Please ensure your n8n workflow is running.",
                 variant: "destructive",
             });
             setIsGeneratingRecipes(false);
@@ -149,17 +107,6 @@ const FindRecipe: React.FC = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Find Recipes</h1>
-            
-            <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">n8n Webhook URL</label>
-                <Input
-                    type="url"
-                    value={webhookUrl}
-                    onChange={(e) => setWebhookUrl(e.target.value)}
-                    placeholder="Enter your n8n webhook URL"
-                    className="mb-4"
-                />
-            </div>
             
             <div className="space-y-4 mb-6">
                 {ingredients.map((ingredient, index) => (
