@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import IngredientCombobox from '../components/IngredientCombobox';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
@@ -16,7 +16,7 @@ interface Recipe {
     unusedIngredients: any[];
 }
 
-const WEBHOOK_URL = 'http://localhost:5678/webhook/generate-recipes';
+const WEBHOOK_URL = 'http://localhost:5678/webhook-test/generate-recipes';
 
 const FindRecipe: React.FC = () => {
     const [ingredients, setIngredients] = useState<string[]>(['']);
@@ -25,6 +25,21 @@ const FindRecipe: React.FC = () => {
     const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
     const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
     const [rawResponse, setRawResponse] = useState<string>('');
+    const [recipe1Content, setRecipe1Content] = useState<string>('');
+    const [recipe2Content, setRecipe2Content] = useState<string>('');
+
+    useEffect(() => {
+        // Parse the raw response when it changes
+        if (rawResponse) {
+            const recipes = rawResponse.split(/(?=Recipe Name:)/);
+            if (recipes.length > 1) {
+                setRecipe1Content(recipes[1].trim());
+            }
+            if (recipes.length > 2) {
+                setRecipe2Content(recipes[2].trim());
+            }
+        }
+    }, [rawResponse]);
 
     const handleIngredientChange = (index: number, value: string) => {
         const newIngredients = [...ingredients];
@@ -58,26 +73,25 @@ const FindRecipe: React.FC = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                // mode: "no-cors", // REMOVE THIS LINE
                 body: JSON.stringify({
                     ingredients: validIngredients
                 }),
             });
 
             if (response.ok) {
-                const responseText = await response.text(); // Get the response body as text
+                const responseText = await response.text();
                 setRawResponse(responseText);
 
                 toast({
-                    title: "Recipe generated",
-                    description: "The recipe is displayed below",
+                    title: "Recipes generated",
+                    description: "The recipes are displayed below.",
                 });
             } else {
                 const errorText = await response.text();
                 setRawResponse(`Error from n8n: ${response.status} - ${errorText}`);
                 toast({
                     title: "Error",
-                    description: `Failed to get recipe from n8n: ${response.status}`,
+                    description: `Failed to get recipes from n8n: ${response.status}`,
                     variant: "destructive",
                 });
             }
@@ -136,7 +150,20 @@ const FindRecipe: React.FC = () => {
                     </Button>
                 </div>
 
-                {rawResponse && (
+                {recipe1Content && recipe2Content && (
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="border rounded-lg shadow-md p-4">
+                            <h2 className="text-xl font-semibold mb-2">Recipe 1:</h2>
+                            <div className="font-mono text-sm whitespace-pre-wrap">{recipe1Content}</div>
+                        </div>
+                        <div className="border rounded-lg shadow-md p-4">
+                            <h2 className="text-xl font-semibold mb-2">Recipe 2:</h2>
+                            <div className="font-mono text-sm whitespace-pre-wrap">{recipe2Content}</div>
+                        </div>
+                    </div>
+                )}
+
+                {rawResponse && !recipe1Content && !recipe2Content && (
                     <div className="mt-6">
                         <h2 className="text-xl font-semibold mb-2">n8n Response:</h2>
                         <Textarea
