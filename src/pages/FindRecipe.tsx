@@ -58,7 +58,7 @@ const FindRecipe: React.FC = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                mode: "no-cors", // Keep this if you are encountering CORS issues
+                // mode: "no-cors", // REMOVE THIS LINE
                 body: JSON.stringify({
                     ingredients: validIngredients
                 }),
