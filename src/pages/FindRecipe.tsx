@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import IngredientCombobox from '../components/IngredientCombobox';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
 import { findRecipesByIngredients, searchIngredients } from '../services/spoonacularService';
+import { Textarea } from "@/components/ui/textarea";
 
 interface Recipe {
     id: number;
@@ -24,6 +24,7 @@ const FindRecipe: React.FC = () => {
     const [suggestionResults, setSuggestionResults] = useState<string[]>([]);
     const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
     const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
+    const [rawResponse, setRawResponse] = useState<string>('');
 
     const handleIngredientChange = (index: number, value: string) => {
         const newIngredients = [...ingredients];
@@ -57,38 +58,26 @@ const FindRecipe: React.FC = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                mode: "no-cors", // Handle CORS
+                mode: "no-cors",
                 body: JSON.stringify({
                     ingredients: validIngredients
                 }),
             });
 
+            const responseText = JSON.stringify(response, null, 2);
+            setRawResponse(responseText);
+
             toast({
                 title: "Request sent to n8n",
-                description: "Check your n8n workflow for results",
+                description: "Check the response below",
             });
 
-            // Clear existing recipes while we wait for n8n to process
             setRecipeResults([]);
-            
-            // Simulating a response after 2 seconds (remove in production)
-            setTimeout(() => {
-                const mockRecipes = validIngredients.map((ing, index) => ({
-                    id: index + 1,
-                    title: `${ing} Recipe ${index + 1}`,
-                    image: `https://spoonacular.com/recipeImages/recipe-${index + 1}.jpg`,
-                    usedIngredientCount: 1,
-                    missedIngredientCount: 2,
-                    missedIngredients: [],
-                    usedIngredients: [{name: ing}],
-                    unusedIngredients: []
-                }));
-                setRecipeResults(mockRecipes);
-                setIsGeneratingRecipes(false);
-            }, 2000);
+            setIsGeneratingRecipes(false);
 
         } catch (error) {
             console.error("Error calling n8n webhook:", error);
+            setRawResponse(JSON.stringify(error, null, 2));
             toast({
                 title: "Error",
                 description: "Failed to connect to n8n webhook. Please ensure your n8n workflow is running.",
@@ -136,6 +125,17 @@ const FindRecipe: React.FC = () => {
                         {isGeneratingRecipes ? 'Generating...' : 'Generate Recipe'}
                     </Button>
                 </div>
+
+                {rawResponse && (
+                    <div className="mt-6">
+                        <h2 className="text-xl font-semibold mb-2">n8n Response:</h2>
+                        <Textarea
+                            value={rawResponse}
+                            readOnly
+                            className="min-h-[200px] font-mono text-sm"
+                        />
+                    </div>
+                )}
             </div>
             
             {recipeResults.length > 0 && (
