@@ -216,10 +216,3 @@ const FindRecipe: React.FC = () => {
                                         className="w-full h-48 object-cover"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = "/placeholder.svg";
-                                        }}
-                                    />
-                                )}
-                                <div className="p-4">
-                                    <h3 className="font-bold text-lg mb-2">{recipe.title}</h3>
-                                    <p className="text-sm text-gray-600 mb-2">
-                                        Used
