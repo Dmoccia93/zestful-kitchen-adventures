@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import IngredientCombobox from '../components/IngredientCombobox';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
@@ -25,23 +25,6 @@ const FindRecipe: React.FC = () => {
     const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
     const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
     const [rawResponse, setRawResponse] = useState<string>('');
-    const [recipe1Content, setRecipe1Content] = useState<string>('');
-    const [recipe2Content, setRecipe2Content] = useState<string>('');
-    const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null);
-
-    useEffect(() => {
-        // Parse the raw response when it changes
-        if (rawResponse) {
-            const recipes = rawResponse.split(/(?=Recipe Name:)/);
-            if (recipes.length > 1) {
-                setRecipe1Content(recipes[1].trim());
-            }
-            if (recipes.length > 2) {
-                setRecipe2Content(recipes[2].trim());
-            }
-            setSelectedRecipe(null); // Reset selection after new recipes
-        }
-    }, [rawResponse]);
 
     const handleIngredientChange = (index: number, value: string) => {
         const newIngredients = [...ingredients];
@@ -75,25 +58,26 @@ const FindRecipe: React.FC = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                // mode: "no-cors", // REMOVE THIS LINE
                 body: JSON.stringify({
                     ingredients: validIngredients
                 }),
             });
 
             if (response.ok) {
-                const responseText = await response.text();
+                const responseText = await response.text(); // Get the response body as text
                 setRawResponse(responseText);
 
                 toast({
-                    title: "Recipes generated",
-                    description: "Choose a recipe below to view.",
+                    title: "Recipe generated",
+                    description: "The recipe is displayed below",
                 });
             } else {
                 const errorText = await response.text();
                 setRawResponse(`Error from n8n: ${response.status} - ${errorText}`);
                 toast({
                     title: "Error",
-                    description: `Failed to get recipes from n8n: ${response.status}`,
+                    description: `Failed to get recipe from n8n: ${response.status}`,
                     variant: "destructive",
                 });
             }
@@ -117,10 +101,6 @@ const FindRecipe: React.FC = () => {
         if (event.key === 'Enter') {
             handleGenerateRecipes();
         }
-    };
-
-    const showRecipe = (recipe: string) => {
-        setSelectedRecipe(recipe);
     };
 
     return (
@@ -156,42 +136,7 @@ const FindRecipe: React.FC = () => {
                     </Button>
                 </div>
 
-                {recipe1Content && recipe2Content && !selectedRecipe && (
-                    <div className="mt-6 space-y-4">
-                        <Button onClick={() => showRecipe('recipe1')} className="w-full py-4 text-lg font-semibold bg-blue-500 hover:bg-blue-700 text-white rounded">
-                            View Recipe 1
-                        </Button>
-                        <Button onClick={() => showRecipe('recipe2')} className="w-full py-4 text-lg font-semibold bg-green-500 hover:bg-green-700 text-white rounded">
-                            View Recipe 2
-                        </Button>
-                    </div>
-                )}
-
-                {selectedRecipe === 'recipe1' && (
-                    <div className="mt-6">
-                        <h2 className="text-xl font-semibold mb-2">Recipe 1:</h2>
-                        <Textarea
-                            value={recipe1Content}
-                            readOnly
-                            className="min-h-[300px] font-mono text-sm"
-                        />
-                        <Button onClick={() => setSelectedRecipe(null)} className="mt-2">Back to Recipes</Button>
-                    </div>
-                )}
-
-                {selectedRecipe === 'recipe2' && (
-                    <div className="mt-6">
-                        <h2 className="text-xl font-semibold mb-2">Recipe 2:</h2>
-                        <Textarea
-                            value={recipe2Content}
-                            readOnly
-                            className="min-h-[300px] font-mono text-sm"
-                        />
-                        <Button onClick={() => setSelectedRecipe(null)} className="mt-2">Back to Recipes</Button>
-                    </div>
-                )}
-
-                {rawResponse && !recipe1Content && !recipe2Content && !selectedRecipe && (
+                {rawResponse && (
                     <div className="mt-6">
                         <h2 className="text-xl font-semibold mb-2">n8n Response:</h2>
                         <Textarea
@@ -216,3 +161,25 @@ const FindRecipe: React.FC = () => {
                                         className="w-full h-48 object-cover"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                        }}
+                                    />
+                                )}
+                                <div className="p-4">
+                                    <h3 className="font-bold text-lg mb-2">{recipe.title}</h3>
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        Used ingredients: {recipe.usedIngredientCount}
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                        Missing ingredients: {recipe.missedIngredientCount}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default FindRecipe;
