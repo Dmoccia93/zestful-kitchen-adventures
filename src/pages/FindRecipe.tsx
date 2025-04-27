@@ -16,7 +16,7 @@ interface Recipe {
     unusedIngredients: any[];
 }
 
-const WEBHOOK_URL = 'http://localhost:5678/webhook/generate-recipes';
+const WEBHOOK_URL = 'http://localhost:5678/webhook-test/generate-recipes';
 
 const FindRecipe: React.FC = () => {
     const [ingredients, setIngredients] = useState<string[]>(['']);
@@ -31,12 +31,14 @@ const FindRecipe: React.FC = () => {
     useEffect(() => {
         // Parse the raw response when it changes
         if (rawResponse) {
-            const recipes = rawResponse.split(/(?=Recipe Name:)/);
-            if (recipes.length > 1) {
-                setRecipe1Content(recipes[1].trim());
-            }
-            if (recipes.length > 2) {
-                setRecipe2Content(recipes[2].trim());
+            try {
+                const responseData = JSON.parse(rawResponse);
+                setRecipe1Content(responseData.recipe1 || '');
+                setRecipe2Content(responseData.recipe2 || '');
+            } catch (error) {
+                console.error("Error parsing JSON response:", error);
+                setRecipe1Content('');
+                setRecipe2Content('');
             }
         }
     }, [rawResponse]);
@@ -162,7 +164,17 @@ const FindRecipe: React.FC = () => {
                         </div>
                     </div>
                 )}
-                
+
+                {rawResponse && !recipe1Content && !recipe2Content && (
+                    <div className="mt-6">
+                        <h2 className="text-xl font-semibold mb-2">n8n Response:</h2>
+                        <Textarea
+                            value={rawResponse}
+                            readOnly
+                            className="min-h-[200px] font-mono text-sm"
+                        />
+                    </div>
+                )}
             </div>
 
             {recipeResults.length > 0 && (
