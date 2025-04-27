@@ -162,17 +162,7 @@ const FindRecipe: React.FC = () => {
                         </div>
                     </div>
                 )}
-
-                {rawResponse && !recipe1Content && !recipe2Content && (
-                    <div className="mt-6">
-                        <h2 className="text-xl font-semibold mb-2">n8n Response:</h2>
-                        <Textarea
-                            value={rawResponse}
-                            readOnly
-                            className="min-h-[200px] font-mono text-sm"
-                        />
-                    </div>
-                )}
+                
             </div>
 
             {recipeResults.length > 0 && (
