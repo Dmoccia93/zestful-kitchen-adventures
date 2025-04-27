@@ -6,10 +6,11 @@ import { Loader2 } from 'lucide-react';
 interface ComboboxProps {
     value: string;
     onValueChange: (value: string) => void;
-    items: string[] | undefined; // Allow undefined
+    items: string[] | undefined;
     label?: string;
     isValid?: boolean;
     isLoading?: boolean;
+    onKeyDown?: (event: React.KeyboardEvent) => void;
 }
 
 const Combobox: React.FC<ComboboxProps> = ({
@@ -18,7 +19,8 @@ const Combobox: React.FC<ComboboxProps> = ({
     items,
     label,
     isValid = true,
-    isLoading = false
+    isLoading = false,
+    onKeyDown
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
@@ -126,6 +128,11 @@ const Combobox: React.FC<ComboboxProps> = ({
                 onValueChange(query);
             }
             setIsOpen(false);
+        }
+        
+        // Call the onKeyDown prop if provided
+        if (onKeyDown) {
+            onKeyDown(e);
         }
     };
 
