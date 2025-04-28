@@ -32,6 +32,8 @@ const FindRecipe: React.FC = () => {
                 const responseData = JSON.parse(rawResponse);
                 setRecipe1Data(responseData.recipe1 || {});
                 setRecipe2Data(responseData.recipe2 || {});
+                console.log("recipe1Data:", responseData.recipe1);
+                console.log("recipe2Data:", responseData.recipe2);
             } catch (error) {
                 console.error("Error parsing JSON response:", error);
                 setRecipe1Data({});
@@ -176,16 +178,16 @@ const FindRecipe: React.FC = () => {
                     </Button>
                 </div>
 
-                {recipe1Data.recipeName && recipe2Data.recipeName && (
+                {recipe1Data?.recipeName && recipe2Data?.recipeName && (
                     <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div style={{ backgroundColor: '#f0fdf4' }}>
                             <div className="bg-green-500 text-white p-2 text-center">Recipe 1: Do something great with what you have</div>
                             <RecipeBanner
-                                title={recipe1Data.recipeName}
-                                subtitle={`Cooking Time: ${recipe1Data.totalTime}`}
-                                cookTime={parseInt(recipe1Data.totalTime)}
-                                tags={[recipe1Data.nutritionTag]}
-                                image={recipe1Data.image}
+                                title={recipe1Data?.recipeName}
+                                subtitle={`Cooking Time: ${recipe1Data?.totalTime}`}
+                                cookTime={parseInt(recipe1Data?.totalTime)}
+                                tags={[recipe1Data?.nutritionTag]}
+                                image={recipe1Data?.image}
                                 onClick={() => setSelectedRecipe('recipe1')}
                             />
                         </div>
@@ -194,15 +196,15 @@ const FindRecipe: React.FC = () => {
                             <div className="bg-yellow-500 text-white p-2 text-center">Recipe 2: Add a little touch for something special</div>
                             <div className="relative">
                                 <RecipeBanner
-                                    title={recipe2Data.recipeName}
-                                    subtitle={`Cooking Time: ${recipe2Data.totalTime}`}
-                                    cookTime={parseInt(recipe2Data.totalTime)}
-                                    calories={parseInt(recipe2Data.totalKcals)}
-                                    image={recipe2Data.image}
-                                    tags={[`${recipe2Data.totalKcals} kcal`]}
+                                    title={recipe2Data?.recipeName}
+                                    subtitle={`Cooking Time: ${recipe2Data?.totalTime}`}
+                                    cookTime={parseInt(recipe2Data?.totalTime)}
+                                    calories={parseInt(recipe2Data?.totalKcals)}
+                                    image={recipe2Data?.image}
+                                    tags={[`${recipe2Data?.totalKcals} kcal`]}
                                     onClick={() => setSelectedRecipe('recipe2')}
                                 />
-                                {recipe2Data.macros && (
+                                {recipe2Data?.macros && (
                                     <div className="absolute bottom-4 right-4">
                                         {renderMacrosPieChart(recipe2Data.macros)}
                                     </div>
