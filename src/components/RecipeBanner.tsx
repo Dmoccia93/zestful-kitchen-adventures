@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ interface RecipeBannerProps {
   calories?: number;
   tags?: string[];
   onClick?: () => void;
+  image?: string; // Add image prop
 }
 
 const RecipeBanner: React.FC<RecipeBannerProps> = ({
@@ -21,10 +21,11 @@ const RecipeBanner: React.FC<RecipeBannerProps> = ({
   prepTime,
   calories,
   tags = [],
-  onClick
+  onClick,
+  image, // Include image in props
 }) => {
   return (
-    <Card 
+    <Card
       className="w-full cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1"
       onClick={onClick}
     >
@@ -37,20 +38,26 @@ const RecipeBanner: React.FC<RecipeBannerProps> = ({
             )}
           </div>
 
+          {image && (
+            <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-md">
+              <img src={image} alt={title} className="object-cover w-full h-full" />
+            </div>
+          )}
+
           <div className="flex gap-4 text-sm text-muted-foreground">
-            {cookTime && (
+            {cookTime !== undefined && (
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
                 <span>{cookTime} min</span>
               </div>
             )}
-            {prepTime && (
+            {prepTime !== undefined && (
               <div className="flex items-center gap-1">
                 <LeafyGreen className="h-4 w-4" />
                 <span>{prepTime} min</span>
               </div>
             )}
-            {calories && (
+            {calories !== undefined && (
               <div className="flex items-center gap-1">
                 <Flame className="h-4 w-4" />
                 <span>{calories} kcal</span>
@@ -61,8 +68,8 @@ const RecipeBanner: React.FC<RecipeBannerProps> = ({
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {tags.map((tag, index) => (
-                <Badge 
-                  key={index} 
+                <Badge
+                  key={index}
                   variant="secondary"
                   className="rounded-full bg-secondary/50"
                 >
