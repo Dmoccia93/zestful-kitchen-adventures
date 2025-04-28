@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import IngredientCombobox from '../components/IngredientCombobox';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
-import { findRecipesByIngredients, searchIngredients } from '../services/spoonacularService';
-import { Textarea } from "@/components/ui/textarea";
+import RecipeBanner from '../components/RecipeBanner';
 
 interface Recipe {
     id: number;
@@ -16,13 +16,10 @@ interface Recipe {
     unusedIngredients: any[];
 }
 
-const WEBHOOK_URL = 'http://localhost:5678/webhook/generate-recipes';
+const WEBHOOK_URL = 'http://localhost:5678/webhook-test/generate-recipes';
 
 const FindRecipe: React.FC = () => {
     const [ingredients, setIngredients] = useState<string[]>(['']);
-    const [recipeResults, setRecipeResults] = useState<Recipe[]>([]);
-    const [suggestionResults, setSuggestionResults] = useState<string[]>([]);
-    const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
     const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
     const [rawResponse, setRawResponse] = useState<string>('');
     const [recipe1Content, setRecipe1Content] = useState<string>('');
@@ -68,8 +65,6 @@ const FindRecipe: React.FC = () => {
         }
 
         try {
-            console.log("Sending ingredients to n8n webhook:", validIngredients);
-
             const response = await fetch(WEBHOOK_URL, {
                 method: "POST",
                 headers: {
@@ -83,39 +78,26 @@ const FindRecipe: React.FC = () => {
             if (response.ok) {
                 const responseText = await response.text();
                 setRawResponse(responseText);
-
                 toast({
-                    title: "Recipes generated",
-                    description: "The recipes are displayed below.",
+                    title: "Success",
+                    description: "Recipes generated successfully!",
                 });
             } else {
-                const errorText = await response.text();
-                setRawResponse(`Error from n8n: ${response.status} - ${errorText}`);
                 toast({
                     title: "Error",
-                    description: `Failed to get recipes from n8n: ${response.status}`,
+                    description: `Failed to get recipes: ${response.status}`,
                     variant: "destructive",
                 });
             }
-
-            setRecipeResults([]);
-            setIsGeneratingRecipes(false);
-
         } catch (error) {
-            console.error("Error calling n8n webhook:", error);
-            setRawResponse(JSON.stringify(error, null, 2));
+            console.error("Error calling webhook:", error);
             toast({
                 title: "Error",
-                description: "Failed to connect to n8n webhook. Please ensure your n8n workflow is running.",
+                description: "Failed to connect to webhook",
                 variant: "destructive",
             });
+        } finally {
             setIsGeneratingRecipes(false);
-        }
-    };
-
-    const handleKeyDown = (event: React.KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            handleGenerateRecipes();
         }
     };
 
@@ -130,8 +112,6 @@ const FindRecipe: React.FC = () => {
                             value={ingredient}
                             onValueChange={(value) => handleIngredientChange(index, value)}
                             label={`Ingredient ${index + 1}`}
-                            suggestions={suggestionResults}
-                            isLoading={isSearchingSuggestions}
                         />
                     </div>
                 ))}
@@ -153,60 +133,39 @@ const FindRecipe: React.FC = () => {
                 </div>
 
                 {recipe1Content && recipe2Content && (
-                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="border rounded-lg shadow-md p-4">
-                            <h2 className="text-xl font-semibold mb-2">Recipe 1:</h2>
-                            <div className="font-mono text-sm whitespace-pre-wrap">{recipe1Content}</div>
-                        </div>
-                        <div className="border rounded-lg shadow-md p-4">
-                            <h2 className="text-xl font-semibold mb-2">Recipe 2:</h2>
-                            <div className="font-mono text-sm whitespace-pre-wrap">{recipe2Content}</div>
-                        </div>
-                    </div>
-                )}
-
-                {rawResponse && !recipe1Content && !recipe2Content && (
-                    <div className="mt-6">
-                        <h2 className="text-xl font-semibold mb-2">n8n Response:</h2>
-                        <Textarea
-                            value={rawResponse}
-                            readOnly
-                            className="min-h-[200px] font-mono text-sm"
+                    <div className="mt-8 space-y-6">
+                        <RecipeBanner
+                            title="Recipe 1"
+                            subtitle={recipe1Content}
+                            cookTime={30}
+                            prepTime={20}
+                            calories={650}
+                            tags={["Vegetarian", "Easy to make"]}
+                            onClick={() => {
+                                toast({
+                                    title: "Recipe 1 Selected",
+                                    description: "Opening recipe details...",
+                                });
+                            }}
+                        />
+                        
+                        <RecipeBanner
+                            title="Recipe 2"
+                            subtitle={recipe2Content}
+                            cookTime={35}
+                            prepTime={25}
+                            calories={750}
+                            tags={["Quick", "Family-friendly"]}
+                            onClick={() => {
+                                toast({
+                                    title: "Recipe 2 Selected",
+                                    description: "Opening recipe details...",
+                                });
+                            }}
                         />
                     </div>
                 )}
             </div>
-
-            {recipeResults.length > 0 && (
-                <div>
-                    <h2 className="text-2xl font-bold mb-4">Recipe Results</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {recipeResults.map(recipe => (
-                            <div key={recipe.id} className="border rounded-lg overflow-hidden shadow-md">
-                                {recipe.image && (
-                                    <img
-                                        src={recipe.image}
-                                        alt={recipe.title}
-                                        className="w-full h-48 object-cover"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = "/placeholder.svg";
-                                        }}
-                                    />
-                                )}
-                                <div className="p-4">
-                                    <h3 className="font-bold text-lg mb-2">{recipe.title}</h3>
-                                    <p className="text-sm text-gray-600 mb-2">
-                                        Used ingredients: {recipe.usedIngredientCount}
-                                    </p>
-                                    <p className="text-sm text-gray-600">
-                                        Missing ingredients: {recipe.missedIngredientCount}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
