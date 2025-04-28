@@ -4,7 +4,7 @@ import { toast } from "@/hooks/use-toast";
 import { IngredientsInput } from '../components/recipe/IngredientsInput';
 import { RecipesContainer } from '../components/recipe/RecipesContainer';
 
-const WEBHOOK_URL = 'http://localhost:5678/webhook-test/generate-recipes';
+const WEBHOOK_URL = 'http://localhost:5678/webhook/generate-recipes';
 
 const FindRecipe: React.FC = () => {
   const [ingredients, setIngredients] = useState<string[]>(['']);
