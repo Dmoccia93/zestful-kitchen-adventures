@@ -212,18 +212,30 @@ const FindRecipe: React.FC = () => {
                     </div>
                 )}
 
-                {selectedRecipe && (
+{selectedRecipe && (
                     <div className="mt-8">
                         {selectedRecipe === 'recipe1' && recipe1Data && (
                             <div>
-                                <h2 className="text-2xl font-bold mb-4">{recipe1Data.recipeName}</h2>
-                                {recipe1Data.image && <img src={recipe1Data.image} alt="Recipe 1" className="w-full h-48 object-cover mb-4" />}
-                                <p>{recipe1Data.instructions}</p>
+                                <h2 className="text-2xl font-bold mb-4">{recipe1Data?.recipeName}</h2>
+                                {recipe1Data?.image && <img src={recipe1Data.image} alt="Recipe 1" className="w-full h-48 object-cover mb-4" />}
+                                <p>{recipe1Data?.instructions}</p>
                                 <Button onClick={() => setSelectedRecipe(null)} className="mt-2">Back to Recipes</Button>
                             </div>
                         )}
 
                         {selectedRecipe === 'recipe2' && recipe2Data && (
                             <div>
-                                <h2 className="text-2xl font-bold mb-4">{recipe2Data.recipeName}</h2>
-                                {recipe
+                                <h2 className="text-2xl font-bold mb-4">{recipe2Data?.recipeName}</h2>
+                                {recipe2Data?.image && <img src={recipe2Data.image} alt="Recipe 2" className="w-full h-48 object-cover mb-4" />}
+                                <p>{recipe2Data?.instructions}</p>
+                                <Button onClick={() => setSelectedRecipe(null)} className="mt-2">Back to Recipes</Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default FindRecipe;
