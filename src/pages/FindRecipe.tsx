@@ -3,6 +3,8 @@ import IngredientCombobox from '../components/IngredientCombobox';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
 import RecipeBanner from '../components/RecipeBanner';
+import { Clock, PieChart } from 'lucide-react';
+import { PieChart as RechartsChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 interface Recipe {
     id: number;
@@ -15,14 +17,14 @@ interface Recipe {
     unusedIngredients: any[];
 }
 
-const WEBHOOK_URL = 'http://localhost:5678/webhook/generate-recipes';
+const WEBHOOK_URL = 'http://localhost:5678/webhook-test/generate-recipes';
 
 const FindRecipe: React.FC = () => {
     const [ingredients, setIngredients] = useState<string[]>(['']);
     const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
     const [rawResponse, setRawResponse] = useState<string>('');
-    const [recipe1Content, setRecipe1Content] = useState<any>('');
-    const [recipe2Content, setRecipe2Content] = useState<any>('');
+    const [recipe1Content, setRecipe1Content] = useState<any>({});
+    const [recipe2Content, setRecipe2Content] = useState<any>({});
     const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null);
 
     useEffect(() => {
@@ -100,6 +102,47 @@ const FindRecipe: React.FC = () => {
         }
     };
 
+    const renderMacrosPieChart = (macrosString: string) => {
+        if (!macrosString) return null;
+        
+        try {
+            const [protein, carbs, fat] = macrosString.split('-').map(Number);
+            
+            const data = [
+                { name: 'Protein', value: protein },
+                { name: 'Carbs', value: carbs },
+                { name: 'Fat', value: fat }
+            ];
+
+            const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+
+            return (
+                <div className="w-24 h-24">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RechartsChart>
+                            <Pie
+                                data={data}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={15}
+                                outerRadius={30}
+                                paddingAngle={5}
+                                dataKey="value"
+                            >
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                        </RechartsChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        } catch (error) {
+            console.error("Error rendering macros pie chart:", error);
+            return null;
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Find Recipes</h1>
@@ -133,30 +176,36 @@ const FindRecipe: React.FC = () => {
 
                 {recipe1Content && recipe2Content && (
                     <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div style={{ backgroundColor: '#f0fdf4' }}> {/* Light green background */}
+                        <div style={{ backgroundColor: '#f0fdf4' }}>
                             <div className="bg-green-500 text-white p-2 text-center">Recipe 1: Do something great with what you have</div>
                             <RecipeBanner
                                 title={recipe1Content.recipeName}
                                 subtitle={`Cooking Time: ${recipe1Content.totalTime}`}
-                                cookTime={parseInt(recipe1Content.totalTime)} // Assuming totalTime is a string number
+                                cookTime={parseInt(recipe1Content.totalTime)}
                                 tags={[recipe1Content.nutritionTag]}
+                                image={recipe1Content.image}
                                 onClick={() => setSelectedRecipe('recipe1')}
                             />
-                            {recipe1Content.image && <img src={recipe1Content.image} alt="Recipe 1" className="w-full h-48 object-cover" />}
                         </div>
 
-                        <div style={{ backgroundColor: '#fef3c7' }}> {/* Light yellow background */}
+                        <div style={{ backgroundColor: '#fef3c7' }}>
                             <div className="bg-yellow-500 text-white p-2 text-center">Recipe 2: Add a little touch for something special</div>
-                            <RecipeBanner
-                                title={recipe2Content.recipeName}
-                                subtitle={`Cooking Time: ${recipe2Content.totalTime} | Kcals: ${recipe2Content.totalKcals}`}
-                                cookTime={parseInt(recipe2Content.totalTime)} // Assuming totalTime is a string number
-                                calories={parseInt(recipe2Content.totalKcals)} // Assuming totalKcals is a string number
-                                tags={[recipe2Content.macros]}
-                                onClick={() => setSelectedRecipe('recipe2')}
-                            />
-                             {recipe2Content.image && <img src={recipe2Content.image} alt="Recipe 2" className="w-full h-48 object-cover" />}
-                            {/* You'll need to implement a PieChart component here using recipe2Content.macros data */}
+                            <div className="relative">
+                                <RecipeBanner
+                                    title={recipe2Content.recipeName}
+                                    subtitle={`Cooking Time: ${recipe2Content.totalTime} | Kcals: ${recipe2Content.totalKcals}`}
+                                    cookTime={parseInt(recipe2Content.totalTime)}
+                                    calories={parseInt(recipe2Content.totalKcals)}
+                                    image={recipe2Content.image}
+                                    tags={[`${recipe2Content.totalKcals} kcal`]}
+                                    onClick={() => setSelectedRecipe('recipe2')}
+                                />
+                                {recipe2Content.macros && (
+                                    <div className="absolute bottom-4 right-4">
+                                        {renderMacrosPieChart(recipe2Content.macros)}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -177,7 +226,6 @@ const FindRecipe: React.FC = () => {
                                 <h2 className="text-2xl font-bold mb-4">{recipe2Content.recipeName}</h2>
                                 {recipe2Content.image && <img src={recipe2Content.image} alt="Recipe 2" className="w-full h-48 object-cover mb-4" />}
                                 <p>{recipe2Content.instructions}</p>
-                                {/* Pie chart component for recipe2Content.macros would go here */}
                                 <Button onClick={() => setSelectedRecipe(null)} className="mt-2">Back to Recipes</Button>
                             </div>
                         )}
